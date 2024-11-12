@@ -9,7 +9,7 @@ function Header() {
   return (
     <div className="p-5 flex justify-between items-center border shadow-sm">
       <div className="flex flex-row items-center">
-        <Image src={"/chart-donut.svg"} alt="logo" width={40} height={25} />
+        <Image src={"/moneya.svg"} alt="logo" width={40} height={25} />
         <span className="font-bold text-xl" style={{ color: '#4CAF50' }}>
           Finance Tracker
         </span>
