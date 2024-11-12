@@ -10,7 +10,9 @@ function Header() {
     <div className="p-5 flex justify-between items-center border shadow-sm">
       <div className="flex flex-row items-center">
         <Image src={"/chart-donut.svg"} alt="logo" width={40} height={25} />
-        <span className="text-green-800  font-bold text-xl">FinanSmart</span>
+        <span className="font-bold text-xl" style={{ color: '#4CAF50' }}>
+          Finance Tracker
+        </span>
       </div>
       {isSignedIn ? (
         <UserButton />
