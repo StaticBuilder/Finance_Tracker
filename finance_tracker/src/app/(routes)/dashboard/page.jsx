@@ -11,16 +11,22 @@ import ExpenseListTable from "./expenses/_components/ExpenseListTable";
 
 function Dashboard() {
   const { user } = useUser();
-
+  const [userEmail, setUserEmail] = useState(null); // To hold the user's email
   const [budgetList, setBudgetList] = useState([]);
   const [incomeList, setIncomeList] = useState([]);
   const [expensesList, setExpensesList] = useState([]);
+  
+  // useEffect(() => {
+  //   user && getBudgetList();
+  // }, [user]);
+  
   useEffect(() => {
-    user && getBudgetList();
+    if (user) {
+      setUserEmail(user.primaryEmailAddress?.emailAddress); // Set the user's email
+      getBudgetList();
+    }
   }, [user]);
-  /**
-   * used to get budget List
-   */
+
   const getBudgetList = async () => {
     const result = await db
       .select({
@@ -85,7 +91,9 @@ function Dashboard() {
         Here's what happenning with your money, Lets Manage your expense
       </p>
 
-      <CardInfo budgetList={budgetList} incomeList={incomeList} />
+      {/* Pass the currentUserEmail prop to CardInfo */}
+      <CardInfo budgetList={budgetList} incomeList={incomeList} currentUserEmail={userEmail} />
+
       <div className="grid grid-cols-1 lg:grid-cols-3 mt-6 gap-5">
         <div className="lg:col-span-2">
           <BarChartDashboard budgetList={budgetList} />

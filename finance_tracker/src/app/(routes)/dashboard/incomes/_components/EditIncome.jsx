@@ -1,5 +1,7 @@
 "use client";
-import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { PenBox } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { Dialog,
   DialogClose,
   DialogContent,
@@ -9,17 +11,16 @@ import { Dialog,
   DialogTitle,
   DialogTrigger,
  } from "@/components/ui/dialog";
-  
 import EmojiPicker from "emoji-picker-react";
-import { Button } from "@/components/ui/button";
+import { useUser } from "@clerk/nextjs";
 import { Input } from "@/components/ui/input";
 import { db } from "../../../../../../utils/dbConfig";
 import { Incomes } from "../../../../../../utils/schema";
-import { useUser } from "@clerk/nextjs";
+import { eq } from "drizzle-orm";
 import { toast } from "sonner";
 
-function CreateIncomes({ refreshData }) {
-  const [emojiIcon, setEmojiIcon] = useState("😀");
+function EditIncome({ incomeInfo, refreshData}) {
+  const [emojiIcon, setEmojiIcon] = useState(incomeInfo?.icon);
   const [openEmojiPicker, setOpenEmojiPicker] = useState(false);
 
   const [name, setName] = useState();
@@ -27,41 +28,42 @@ function CreateIncomes({ refreshData }) {
 
   const { user } = useUser();
 
-  /**
-   * Used to Create New Budget
-   */
-  const onCreateIncomes = async () => {
+  useEffect(() => {
+    if (incomeInfo) {
+      setEmojiIcon(incomeInfo?.icon);
+      setAmount(incomeInfo.amount);
+      setName(incomeInfo.name);
+    }
+  }, [incomeInfo]);
+
+  const onUpdateIncome = async () => {
     const result = await db
-      .insert(Incomes)
-      .values({
+      .update(Incomes)
+      .set({
         name: name,
         amount: amount,
-        createdBy: user?.primaryEmailAddress?.emailAddress,
         icon: emojiIcon,
       })
-      .returning({ insertedId: Incomes.id });
+      .where(eq(Incomes.id, incomeInfo.id))
+      .returning();
 
     if (result) {
       refreshData();
-      toast("New Income Source Created!");
+      toast("Income Updated!");
     }
   };
   return (
     <div>
       <Dialog>
         <DialogTrigger asChild>
-          <div
-            className="bg-green-500 p-10 rounded-2xl
-            items-center flex flex-col border-2 border-dashed
-            cursor-pointer hover:shadow-md animate-bounce"
-          >
-            <h2 className="text-3xl">+</h2>
-            <h2>Create New Income Source</h2>
-          </div>
+          <Button className="flex space-x-2 gap-2 rounded-full">
+            {" "}
+            <PenBox className="w-4" /> Edit
+          </Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create New Income Source</DialogTitle>
+            <DialogTitle>Update Income</DialogTitle>
             <DialogDescription>
               <div className="mt-5">
                 <Button
@@ -81,17 +83,19 @@ function CreateIncomes({ refreshData }) {
                   />
                 </div>
                 <div className="mt-2">
-                  <h2 className="text-black font-medium my-1">Source Name</h2>
+                  <h2 className="text-black font-medium my-1">Income Name</h2>
                   <Input
-                    placeholder="e.g. Youtube"
+                    placeholder="e.g. Home Decor"
+                    defaultValue={incomeInfo?.name}
                     onChange={(e) => setName(e.target.value)}
                   />
                 </div>
                 <div className="mt-2">
-                  <h2 className="text-black font-medium my-1">Montly Amount</h2>
+                  <h2 className="text-black font-medium my-1">Income Amount</h2>
                   <Input
                     type="number"
-                    placeholder="e.g. 5000$"
+                    defaultValue={incomeInfo?.amount}
+                    placeholder="e.g. Ksh.5000"
                     onChange={(e) => setAmount(e.target.value)}
                   />
                 </div>
@@ -102,10 +106,10 @@ function CreateIncomes({ refreshData }) {
             <DialogClose asChild>
               <Button
                 disabled={!(name && amount)}
-                onClick={() => onCreateIncomes()}
+                onClick={() => onUpdateIncome()}
                 className="mt-5 w-full rounded-full"
               >
-                Create Income Source
+                Update Income
               </Button>
             </DialogClose>
           </DialogFooter>
@@ -115,4 +119,4 @@ function CreateIncomes({ refreshData }) {
   );
 }
 
-export default CreateIncomes;
+export default EditIncome;

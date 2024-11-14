@@ -8,8 +8,7 @@ import BudgetItem from "../../budgets/_components/BudgetItem";
 import AddExpense from "../_components/AddExpense";
 import ExpenseListTable from "../_components/ExpenseListTable";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Pen, PenBox, Trash } from "lucide-react";
-
+import { ArrowLeft, Trash } from "lucide-react";
 import { AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -18,71 +17,95 @@ import { AlertDialog,
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
- } from "@/components/ui/alert-dialog";
+  AlertDialogTrigger, } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import EditBudget from "../_components/EditBudget";
 
+// Modify the ExpensesScreen component to correctly access `params` after it's unwrapped
 function ExpensesScreen({ params }) {
   const { user } = useUser();
-  const [budgetInfo, setbudgetInfo] = useState();
+  const [budgetInfo, setBudgetInfo] = useState(null);
   const [expensesList, setExpensesList] = useState([]);
   const route = useRouter();
+
+  // Fetch budget info when user changes or on component mount
   useEffect(() => {
-    user && getBudgetInfo();
-  }, [user]);
+    if (user && params) {
+      // Ensure params.id is unwrapped before usage
+      const budgetId = params.id; // `params` might now be a Promise, so await or check its resolved value.
+      getBudgetInfo(budgetId);
+    }
+  }, [user, params]); // Ensure that this effect is run only when `params.id` changes
 
   /**
    * Get Budget Information
    */
-  const getBudgetInfo = async () => {
-    const result = await db
-      .select({
-        ...getTableColumns(Budgets),
-        totalSpend: sql`sum(${Expenses.amount})`.mapWith(Number),
-        totalItem: sql`count(${Expenses.id})`.mapWith(Number),
-      })
-      .from(Budgets)
-      .leftJoin(Expenses, eq(Budgets.id, Expenses.budgetId))
-      .where(eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress))
-      .where(eq(Budgets.id, params.id))
-      .groupBy(Budgets.id);
+  const getBudgetInfo = async (budgetId) => {
+    try {
+      const result = await db
+        .select({
+          ...getTableColumns(Budgets),
+          totalSpend: sql`sum(${Expenses.amount})`.mapWith(Number),
+          totalItem: sql`count(${Expenses.id})`.mapWith(Number),
+        })
+        .from(Budgets)
+        .leftJoin(Expenses, eq(Budgets.id, Expenses.budgetId))
+        .where(eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress))
+        .where(eq(Budgets.id, budgetId)) // Use the resolved `budgetId`
+        .groupBy(Budgets.id);
 
-    setbudgetInfo(result[0]);
-    getExpensesList();
+      setBudgetInfo(result[0]);
+    } catch (error) {
+      console.error("Error fetching budget info:", error);
+    }
   };
 
   /**
    * Get Latest Expenses
    */
+  useEffect(() => {
+    if (budgetInfo) {
+      getExpensesList();
+    }
+  }, [budgetInfo]); // Trigger only when `budgetInfo` changes
+
   const getExpensesList = async () => {
-    const result = await db
-      .select()
-      .from(Expenses)
-      .where(eq(Expenses.budgetId, params.id))
-      .orderBy(desc(Expenses.id));
-    setExpensesList(result);
-    console.log(result);
+    try {
+      const result = await db
+        .select()
+        .from(Expenses)
+        .where(eq(Expenses.budgetId, params.id)) // Use the resolved `params.id`
+        .orderBy(desc(Expenses.id));
+
+      setExpensesList(result);
+      console.log(result);
+    } catch (error) {
+      console.error("Error fetching expenses:", error);
+    }
   };
 
   /**
    * Used to Delete budget
    */
   const deleteBudget = async () => {
-    const deleteExpenseResult = await db
-      .delete(Expenses)
-      .where(eq(Expenses.budgetId, params.id))
-      .returning();
-
-    if (deleteExpenseResult) {
-      const result = await db
-        .delete(Budgets)
-        .where(eq(Budgets.id, params.id))
+    try {
+      const deleteExpenseResult = await db
+        .delete(Expenses)
+        .where(eq(Expenses.budgetId, params.id)) // Use the resolved `params.id`
         .returning();
+
+      if (deleteExpenseResult) {
+        const result = await db
+          .delete(Budgets)
+          .where(eq(Budgets.id, params.id)) // Use the resolved `params.id`
+          .returning();
+      }
+      toast("Budget Deleted!");
+      route.replace("/dashboard/budgets");
+    } catch (error) {
+      console.error("Error deleting budget:", error);
     }
-    toast("Budget Deleted !");
-    route.replace("/dashboard/budgets");
   };
 
   return (
@@ -95,9 +118,8 @@ function ExpensesScreen({ params }) {
         <div className="flex gap-2 items-center">
           <EditBudget
             budgetInfo={budgetInfo}
-            refreshData={() => getBudgetInfo()}
+            refreshData={() => getBudgetInfo(params.id)} // Pass `params.id` as argument
           />
-
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button className="flex gap-2 rounded-full" variant="destructive">
@@ -115,40 +137,31 @@ function ExpensesScreen({ params }) {
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction onClick={() => deleteBudget()}>
-                  Continue
-                </AlertDialogAction>
+                <AlertDialogAction onClick={() => deleteBudget()}>Continue</AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
         </div>
       </h2>
-      <div
-        className="grid grid-cols-1 
-        md:grid-cols-2 mt-6 gap-5"
-      >
+      <div className="grid grid-cols-1 md:grid-cols-2 mt-6 gap-5">
         {budgetInfo ? (
           <BudgetItem budget={budgetInfo} />
         ) : (
-          <div
-            className="h-[150px] w-full bg-slate-200 
-            rounded-lg animate-pulse"
-          ></div>
+          <div className="h-[150px] w-full bg-slate-200 rounded-lg animate-pulse"></div>
         )}
         <AddExpense
           budgetId={params.id}
           user={user}
-          refreshData={() => getBudgetInfo()}
+          refreshData={() => getBudgetInfo(params.id)} // Pass `params.id` as argument
         />
       </div>
       <div className="mt-4">
-        <ExpenseListTable
-          expensesList={expensesList}
-          refreshData={() => getBudgetInfo()}
-        />
+        <ExpenseListTable expensesList={expensesList} refreshData={() => getBudgetInfo(params.id)} />
       </div>
     </div>
   );
 }
 
 export default ExpensesScreen;
+
+
