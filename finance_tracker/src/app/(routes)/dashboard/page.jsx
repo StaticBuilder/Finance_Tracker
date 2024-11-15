@@ -8,6 +8,7 @@ import { Budgets, Expenses, Incomes } from "../../../../utils/schema";
 import BarChartDashboard from "./_components/BarChartDashboard";
 import BudgetItem from "./budgets/_components/BudgetItem";
 import ExpenseListTable from "./expenses/_components/ExpenseListTable";
+import { Toaster } from "@/components/ui/sonner";
 
 function Dashboard() {
   const { user } = useUser();
@@ -86,6 +87,7 @@ function Dashboard() {
 
   return (
     <div className="p-8 bg-">
+      <Toaster />
       <h2 className="font-bold text-4xl">Hi, {user?.fullName} 👋</h2>
       <p className="text-gray-500">
         Here's what happenning with your money, Lets Manage your expense

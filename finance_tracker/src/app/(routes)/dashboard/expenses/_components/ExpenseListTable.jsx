@@ -3,7 +3,7 @@ import { Expenses } from "../../../../../../utils/schema";
 import { eq } from "drizzle-orm";
 import { Trash } from "lucide-react";
 import React from "react";
-import { Toaster } from "@/components/ui/sonner";
+import { toast } from "sonner";
 
 function ExpenseListTable({ expensesList, refreshData }) {
   const deleteExpense = async (expense) => {
@@ -14,8 +14,8 @@ function ExpenseListTable({ expensesList, refreshData }) {
         .returning();
 
       if (result) {
-        Toaster("Expense Deleted!");
-        refreshData(); // Refreshing the data after deletion
+        toast.success("Expense Deleted!");
+        await refreshData(); // Refreshing the data after deletion
       }
     } catch (error) {
       console.error("Error deleting expense:", error);
