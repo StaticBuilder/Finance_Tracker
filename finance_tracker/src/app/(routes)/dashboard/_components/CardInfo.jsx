@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import formatNumber from "../../../../../utils";
 import getFinancialAdvice from "../../../../../utils/getFinancialAdvice";
-import {
-  PiggyBank,
-  ReceiptText,
-  Wallet,
-  Sparkles,
-  CircleDollarSign,
-} from "lucide-react";
+// import {
+//   PiggyBank,
+//   ReceiptText,
+//   Wallet,
+//   Sparkles,
+//   CircleDollarSign,
+// } from "lucide-react";
+import { Sparkles, CreditCard, ShoppingCart, List, TrendingUp, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 
 function CardInfo({ budgetList, incomeList, currentUserEmail }) {
   const [totalBudget, setTotalBudget] = useState(0);
@@ -95,7 +96,7 @@ function CardInfo({ budgetList, incomeList, currentUserEmail }) {
                   Ksh.{formatNumber(totalBudget)}
                 </h2>
               </div>
-              <PiggyBank className="bg-green-500 p-3 h-12 w-12 rounded-full text-white" />
+              <CreditCard className="bg-green-500 p-3 h-12 w-12 rounded-full text-white" />
             </div>
             <div className="p-7 border rounded-2xl flex items-center justify-between">
               <div>
@@ -104,14 +105,14 @@ function CardInfo({ budgetList, incomeList, currentUserEmail }) {
                   Ksh.{formatNumber(totalSpend)}
                 </h2>
               </div>
-              <ReceiptText className="bg-green-500 p-3 h-12 w-12 rounded-full text-white" />
+              <ShoppingCart  className="bg-red-500 p-3 h-12 w-12 rounded-full text-white" />
             </div>
             <div className="p-7 border rounded-2xl flex items-center justify-between">
               <div>
                 <h2 className="text-sm">No. Of Budget</h2>
                 <h2 className="font-bold text-2xl">{budgetList?.length}</h2>
               </div>
-              <Wallet className="bg-green-500 p-3 h-12 w-12 rounded-full text-white" />
+              <List className="bg-blue-500 p-3 h-12 w-12 rounded-full text-white" />
             </div>
             <div className="p-7 border rounded-2xl flex items-center justify-between">
               <div>
@@ -120,7 +121,7 @@ function CardInfo({ budgetList, incomeList, currentUserEmail }) {
                   Ksh.{formatNumber(totalIncome)}
                 </h2>
               </div>
-              <CircleDollarSign className="bg-green-500 p-3 h-12 w-12 rounded-full text-white" />
+              <TrendingUp className="bg-green-500 p-3 h-12 w-12 rounded-full text-white" />
             </div>
             <div className="p-7 border rounded-2xl flex items-center justify-between">
               <div>
@@ -129,7 +130,7 @@ function CardInfo({ budgetList, incomeList, currentUserEmail }) {
                   Ksh.{formatNumber(expectedSavings)}
                 </h2>
               </div>
-              <CircleDollarSign className="bg-green-500 p-3 h-12 w-12 rounded-full text-white" />
+              <ArrowDownCircle className="bg-orange-500 p-3 h-12 w-12 rounded-full text-white" />
             </div>
             <div className="p-7 border rounded-2xl flex items-center justify-between">
               <div>
@@ -138,7 +139,7 @@ function CardInfo({ budgetList, incomeList, currentUserEmail }) {
                   Ksh.{formatNumber(actualSavings)}
                 </h2>
               </div>
-              <CircleDollarSign className="bg-green-500 p-3 h-12 w-12 rounded-full text-white" />
+              <ArrowUpCircle className="bg-green-500 p-3 h-12 w-12 rounded-full text-white" />
             </div>
           </div>
         </div>

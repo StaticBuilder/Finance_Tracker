@@ -1,19 +1,17 @@
-import React, { useEffect } from "react";
-import Image from "next/image";
+import React from "react";
 import {
   LayoutGrid,
   PiggyBank,
   ReceiptText,
   CircleDollarSign,
-  PieChart,
-  MenuIcon 
+  PieChart
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 
-function SideNav({ closeSideNav }) {
+function SideNav1({ closeSideNav }) {
   const { user } = useUser();
   const path = usePathname();
 
@@ -22,44 +20,38 @@ function SideNav({ closeSideNav }) {
     { id: 2, name: "Incomes", icon: CircleDollarSign, path: "/dashboard/incomes", color: "text-green-500", hoverColor: "hover:bg-green-100" },
     { id: 3, name: "Budgets", icon: PiggyBank, path: "/dashboard/budgets", color: "text-orange-500", hoverColor: "hover:bg-orange-100" },
     { id: 4, name: "Expenses", icon: ReceiptText, path: "/dashboard/expenses", color: "text-red-500", hoverColor: "hover:bg-red-100" },
-    { id: 5, name: "User - Statistics", icon: MenuIcon, path: "/dashboard/expenses", color: "text-blue-500", hoverColor: "hover:bg-blue-100" }
+    { id: 5, name: "User - Statistics", icon: PieChart, path: "/dashboard/expenses", color: "text-blue-500", hoverColor: "hover:bg-blue-100" }
   ];
 
   return (
-    <div className="h-screen p-5 border shadow-sm">
-      <Link href={"/dashboard"}>
-        <div className="flex flex-row items-center" onClick={closeSideNav}>
-          <Image src={"./moneya.svg"} alt="logo" width={40} height={25} />
-          <span className="font-bold text-xl" style={{ color: "#4CAF50" }}>
-            Finance Tracker
-          </span>
-        </div>
-      </Link>
+    <div className=" p-5 border shadow-sm flex flex-col items-center">
+      {/* User button at the top */}
+      <div className="mb-8 flex flex-col items-center">
+        <UserButton afterSignOutUrl="/" />
+        <span className="text-lg font-bold mt-2">{user?.fullName}</span>
+      </div>
 
-      <div className="mt-5">
+      {/* Navigation links */}
+      <div className="flex flex-col items-center gap-4 w-full">
         {menuList.map((menu) => (
           <Link href={menu.path} key={menu.id}>
             <h2
-              className={`flex gap-2 items-center
-                text-gray-500 font-medium
-                mb-2 p-4 cursor-pointer rounded-full
+              className={`flex gap-4 items-center
+                text-gray-700 font-semibold text-lg
+                p-4 cursor-pointer rounded-lg w-full text-center
                 ${menu.color} ${menu.hoverColor}
-                ${path === menu.path ? menu.color + " bg-opacity-10" : ""}
+                ${path === menu.path ? menu.color + " bg-opacity-20" : ""}
               `}
               onClick={closeSideNav}
             >
-              <menu.icon className={menu.color} />
+              <menu.icon className={`w-6 h-6 ${menu.color}`} />
               {menu.name}
             </h2>
           </Link>
         ))}
       </div>
-      <div className="fixed bottom-10 p-5 flex gap-2 items-center">
-        <UserButton afterSignOutUrl='/' />
-        {user?.fullName}
-      </div>
     </div>
   );
 }
 
-export default SideNav;
+export default SideNav1;
