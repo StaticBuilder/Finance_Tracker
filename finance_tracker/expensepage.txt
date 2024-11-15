@@ -34,3 +34,83 @@ https://media.istockphoto.com/id/1161898919/photo/kenyan-shilling-a-background.j
 https://media.istockphoto.com/id/1158052678/photo/five-hundred-kenyan-shilling-on-a-pile-of-various-kenyan-shilling-notes-top-view.jpg?s=2048x2048&w=is&k=20&c=4cC6BrfeRzqI4clQRgx6zzJyOyH1HK39Ucpq_NSHuaY=
 
 https://media.istockphoto.com/id/1257717196/photo/kenyan-coins-on-the-background-of-money.jpg?s=2048x2048&w=is&k=20&c=hOcyTvMGzdBFUEHsvE2n_LPTzXsho9OpZafxmlqNOu0=
+
+
+import React from "react";
+import { PieChart, Pie, Tooltip, ResponsiveContainer, Cell, Legend } from "recharts";
+
+// Define different colors for each slice
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#D0A1F2', '#8E44AD'];
+
+function PieChartComponent({ data }) {
+  const renderActiveShape = (props) => {
+    const { cx, cy, midAngle, innerRadius, outerRadius, startAngle, endAngle, fill, payload } = props;
+    const RADIAN = Math.PI / 180;
+    const sin = Math.sin(-RADIAN * midAngle);
+    const cos = Math.cos(-RADIAN * midAngle);
+    const startX = cx + outerRadius * cos;
+    const startY = cy + outerRadius * sin;
+    const endX = cx + outerRadius * Math.cos(-RADIAN * endAngle);
+    const endY = cy + outerRadius * Math.sin(-RADIAN * endAngle);
+
+    return (
+      <g>
+        <path
+          d={`M${startX},${startY} A${outerRadius},${outerRadius} 0 0,1 ${endX},${endY} L${cx},${cy} Z`}
+          fill={fill}
+        />
+        <text x={cx} y={cy} dy={8} textAnchor="middle" fill="#fff" fontSize={20}>
+          {`${payload.name}: $${payload.totalSpend}`}
+        </text>
+      </g>
+    );
+  };
+
+  // Custom Tooltip function
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const { name, totalSpend } = payload[0].payload;
+      const totalBudget = payload[0].payload.totalBudget; // Assuming totalBudget is part of your data
+      return (
+        <div className="custom-tooltip p-2 bg-white border rounded shadow-lg">
+          <p className="text-sm text-gray-700"><strong>{name}</strong></p>
+          <p className="text-sm text-green-500">Health: ${totalSpend}</p>
+          <p className="text-sm text-gray-500">Budget: ${totalBudget}</p>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  return (
+    <div className="border rounded-2xl p-5">
+      <h2 className="font-bold text-lg">Activity - Pie Chart</h2>
+      <ResponsiveContainer width={"80%"} height={400}>
+        <PieChart>
+          <Pie
+            dataKey="totalSpend"
+            data={data}
+            cx="50%"
+            cy="50%"
+            outerRadius={120}  // Increased size
+            innerRadius={50}  // Adding a hole in the middle for a donut chart style
+            fill="#8884d8"
+            label
+            activeIndex={0}
+            activeShape={renderActiveShape} // Custom active shape for hover effect
+          >
+            {data.map((entry, index) => (
+              <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            ))}
+          </Pie>
+          <Tooltip  /> 
+          <Legend />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+  );
+}
+
+export default PieChartComponent;
+
+//content={<CustomTooltip />}

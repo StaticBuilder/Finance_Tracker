@@ -20,7 +20,7 @@ function SideNav1({ closeSideNav }) {
     { id: 2, name: "Incomes", icon: CircleDollarSign, path: "/dashboard/incomes", color: "text-green-500", hoverColor: "hover:bg-green-100" },
     { id: 3, name: "Budgets", icon: PiggyBank, path: "/dashboard/budgets", color: "text-orange-500", hoverColor: "hover:bg-orange-100" },
     { id: 4, name: "Expenses", icon: ReceiptText, path: "/dashboard/expenses", color: "text-red-500", hoverColor: "hover:bg-red-100" },
-    { id: 5, name: "User - Statistics", icon: PieChart, path: "/dashboard/expenses", color: "text-blue-500", hoverColor: "hover:bg-blue-100" }
+    { id: 5, name: "User - Statistics", icon: PieChart, path: "/dashboard/statistics", color: "text-blue-500", hoverColor: "hover:bg-blue-100" }
   ];
 
   return (
