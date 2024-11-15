@@ -16,7 +16,7 @@ function SideNav1({ closeSideNav }) {
   const path = usePathname();
 
   const menuList = [
-    { id: 1, name: "Dashboard", icon: LayoutGrid, path: "/dashboard", color: "text-green-500", hoverColor: "hover:bg-green-100" },
+    { id: 1, name: "Dashboard", icon: LayoutGrid, path: "/dashboard", color: "text-green-800", hoverColor: "hover:bg-green-300" },
     { id: 2, name: "Incomes", icon: CircleDollarSign, path: "/dashboard/incomes", color: "text-green-500", hoverColor: "hover:bg-green-100" },
     { id: 3, name: "Budgets", icon: PiggyBank, path: "/dashboard/budgets", color: "text-orange-500", hoverColor: "hover:bg-orange-100" },
     { id: 4, name: "Expenses", icon: ReceiptText, path: "/dashboard/expenses", color: "text-red-500", hoverColor: "hover:bg-red-100" },
@@ -37,7 +37,7 @@ function SideNav1({ closeSideNav }) {
           <Link href={menu.path} key={menu.id}>
             <h2
               className={`flex gap-4 items-center
-                text-gray-700 font-semibold text-lg
+                font-semibold text-lg
                 p-4 cursor-pointer rounded-lg w-full text-center
                 ${menu.color} ${menu.hoverColor}
                 ${path === menu.path ? menu.color + " bg-opacity-20" : ""}
