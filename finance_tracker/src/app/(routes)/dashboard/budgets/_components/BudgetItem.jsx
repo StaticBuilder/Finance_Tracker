@@ -6,6 +6,25 @@ function BudgetItem({ budget }) {
     const perc = (budget.totalSpend / budget.amount) * 100;
     return perc > 100 ? 100 : perc.toFixed(2);
   };
+
+  const getTextColor = () => {
+    const perc = calculateProgressPerc();
+    if (perc >= 75) return "text-red-500"; // Red for 75% and above
+    if (perc >= 50) return "text-orange-500"; // Orange for 50% and above
+    return "text-slate-400"; // Default neutral color
+  };
+
+  const getProgressBarColor = () => {
+    const perc = calculateProgressPerc();
+    if (perc >= 75) return "bg-red-500"; // Red for 75% and above
+    if (perc >= 50) return "bg-orange-500"; // Orange for 50% and above
+    return "bg-primary"; // Default color
+  };
+
+  const shouldBounce = () => {
+    return calculateProgressPerc() >= 75; // Add bounce animation for 75% and above
+  };
+
   return (
     <Link href={"/dashboard/expenses/" + budget?.id}>
       <div
@@ -29,12 +48,12 @@ function BudgetItem({ budget }) {
           <h2 className="font-bold text-primary text-lg"> Ksh.{budget.amount}</h2>
         </div>
 
-        <div className="mt-7">
+        <div className={`mt-7 ${shouldBounce() ? "animate-bounce" : ""}`}>
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xs text-slate-400">
+          <h2 className={`text-xs ${getTextColor()}`}>
               Ksh.{budget.totalSpend ? budget.totalSpend : 0} Spend
             </h2>
-            <h2 className="text-xs text-slate-400">
+            <h2 className={`text-xs ${getTextColor()}`}>
               Ksh.{budget.amount - budget.totalSpend} Remaining
             </h2>
           </div>
@@ -43,8 +62,7 @@ function BudgetItem({ budget }) {
               bg-slate-300 h-2 rounded-full"
           >
             <div
-              className="
-              bg-primary h-2 rounded-full"
+              className={`${getProgressBarColor()} h-2 rounded-full`}
               style={{
                 width: `${calculateProgressPerc()}%`,
               }}

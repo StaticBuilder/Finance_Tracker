@@ -17,8 +17,8 @@ function BarChartComponent({ budgetList }) {
       return (
         <div className="custom-tooltip p-2 bg-white border rounded shadow-lg">
           <p className="text-sm text-gray-700"><strong>{name}</strong></p>
-          <p className="text-sm text-blue-500">Budget: ${amount}</p>
-          <p className="text-sm text-red-500">Spent: ${totalSpend}</p>
+          <p className="text-sm text-blue-500">Budget: Ksh.{amount}</p>
+          <p className="text-sm text-red-500">Spent: Ksh.{totalSpend}</p>
         </div>
       );
     }
