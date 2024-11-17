@@ -4,7 +4,6 @@ import { useUser } from "@clerk/nextjs";
 import { db } from "../../../../../utils/dbConfig";
 import { desc, eq, getTableColumns, sql } from "drizzle-orm";
 import { Budgets, Expenses, Incomes } from "../../../../../utils/schema"; // Make sure Incomes is imported
-import EnhancedUniversalChart from "../_components/graphs/ChartContainer";
 import BarChartSpendVsIncome from "../_components/graphs/BarChartSpendVsIncome";
 import PieChartComponent from "../_components/graphs/PieChartComponent";
 import LineChartComponent from "../_components/graphs/LineChartComponent";
@@ -148,10 +147,6 @@ function StatisticsPage() {
       value1: totalIncome,
       value2: totalBudget,
       labels: ["Income", "Budget"]
-    },
-    {
-      value: "budget-list",
-      label: "Budget vs Spend by Category",
     }
   ];
 
@@ -237,21 +232,14 @@ function StatisticsPage() {
 
       {/* Chart Display */}
       <div className="bg-white rounded-lg shadow p-6">
-        {selectedComparison === 'budget-list' ? (
-          <EnhancedUniversalChart
+        {getCurrentComparison() && (
+          <UniversalChart
             type={selectedGraph}
-            data={budgetList}
-            dataType="budget"
-            title="Budget vs Spend by Category"
-          />
-        ) : (
-          <EnhancedUniversalChart
-            type={selectedGraph}
-            dataType="comparison"
             value1={getCurrentComparison().value1}
             value2={getCurrentComparison().value2}
             labels={getCurrentComparison().labels}
             title={getCurrentComparison().label}
+            chartType={selectedGraph}
           />
         )}
       </div>

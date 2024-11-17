@@ -27,7 +27,7 @@ function BarChartComponent({ budgetList }) {
 
   return (
     <div className="border rounded-2xl p-5">
-      <h2 className="font-bold text-lg">Activity</h2>
+      <h2 className="font-bold text-lg">Bar Chart: Spend To Budget</h2>
       <ResponsiveContainer width={"80%"} height={300}>
         <BarChart
           data={budgetList}

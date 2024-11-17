@@ -18,7 +18,7 @@ function LineChartComponent({ data }) {
 
   return (
     <div className="border rounded-2xl p-5">
-      <h2 className="font-bold text-lg">Activity - Line Chart</h2>
+      <h2 className="font-bold text-lg">Line Chart: Spend To Budget</h2>
       <ResponsiveContainer width={"80%"} height={300}>
         <LineChart data={data}>
           <XAxis dataKey="name" />
