@@ -53,6 +53,19 @@ const financialAdviceData = {
     "This is a sign that you're living exactly within your means. While this might feel stable, its a good idea to regularly review your spending habits to ensure youre not overextending yourself, especially if there's any variation in your income or expenses.",
     "If possible, look for ways to increase your income or reduce unnecessary spending. Even small increases in savings can create a buffer for future goals or unexpected costs.",
     "It's important to keep track of your financial situation since you're living right on the edge. Using budgeting tools  can help you monitor and adjust your financial decisions on a daily or weekly basis."
+  ],
+  scenario10: [
+    "Your spending exceeds your income, which may lead to dependency on savings or credit to cover the gap. Address this imbalance promptly to maintain financial stability.",
+    "Reassess your spending priorities and focus on reducing non-essential expenses to align your spending with your income.",
+    "If you're using savings to bridge the gap, set a clear plan to replenish them to maintain a financial safety net.",
+    "Explore opportunities to increase your income, such as part-time work, freelancing, or negotiating a raise.",
+    "Evaluate your budget to ensure it's realistic and sustainable given your income levels, adjusting where necessary.",
+  ],
+  scenario11: [
+    "Review and prioritize essential expenses to cut down on overspending.",
+    "Avoid relying on debt for non-essential spending.",
+    "Seek ways to increase income or adjust your budget to match realistic spending levels.",
+    "Create a plan to manage and reduce any debt incurred due to overspending.",
   ]
   // Add more scenarios as necessary
 };

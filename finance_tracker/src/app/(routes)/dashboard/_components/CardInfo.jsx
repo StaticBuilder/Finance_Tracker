@@ -87,6 +87,10 @@ function CardInfo({ budgetList, incomeList, currentUserEmail }) {
       return "scenario8"; // Spend = Budget > Income
     } else if (totalIncome === totalSpend && totalSpend === totalBudget) {
       return "scenario9"; // Income = Budget = Spend
+    } else if (totalSpend > totalIncome && totalSpend < totalBudget)  {
+      return "scenario10"; // Spend > Budget > Income
+    }else if (totalSpend > totalIncome && totalIncome === totalBudget)  {
+      return "scenario11"; // Spend > Budget > Income
     } else {
       return "unknownScenario"; // For any unexpected input or edge cases
     }
