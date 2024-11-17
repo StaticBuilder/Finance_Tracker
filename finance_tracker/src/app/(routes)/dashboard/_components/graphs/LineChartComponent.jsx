@@ -24,7 +24,7 @@ function LineChartComponent({ data }) {
           <XAxis dataKey="name" />
           <YAxis />
           <Tooltip content={<CustomTooltip />}/>
-          <Line type="monotone" dataKey="totalSpend" stroke="#8884d8" />
+          <Line type="monotone" dataKey="totalSpend" stroke="#EF4444" />
           <Line type="monotone" dataKey="amount" stroke="#82ca9d" />
         </LineChart>
       </ResponsiveContainer>

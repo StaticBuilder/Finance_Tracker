@@ -35,31 +35,32 @@ function BudgetItem({ budget }) {
           <div className="flex gap-2 items-center">
             <h2
               className="text-2xl p-3 px-4
-              bg-slate-100 rounded-full 
-              "
+              bg-orange-500 rounded-full"
             >
               {budget?.icon}
             </h2>
             <div>
-              <h2 className="font-bold">{budget.name}</h2>
-              <h2 className="text-sm text-gray-500">{budget.totalItem} Item</h2>
+              <h2 className="font-bold md:text-base text-sm">{budget.name}</h2> {/* Added responsive text */}
+              <h2 className="text-sm text-gray-500 md:text-sm text-xs">{budget.totalItem} Items</h2> {/* Added responsive text */}
             </div>
           </div>
-          <h2 className="font-bold text-primary text-lg"> Ksh.{budget.amount}</h2>
+          <h2 className="font-bold text-primary md:text-lg text-sm"> {/* Added responsive text */}
+            Ksh.{budget.amount}
+          </h2>
         </div>
-
+  
         <div className={`mt-7 ${shouldBounce() ? "animate-bounce" : ""}`}>
           <div className="flex items-center justify-between mb-3">
-          <h2 className={`text-xs ${getTextColor()}`}>
+            <h2 className={`md:text-xs text-[10px] ${getTextColor()}`}> {/* Added responsive text */}
               Ksh.{budget.totalSpend ? budget.totalSpend : 0} Spend
             </h2>
-            <h2 className={`text-xs ${getTextColor()}`}>
+            <h2 className={`md:text-xs text-[10px] ${getTextColor()}`}> {/* Added responsive text */}
               Ksh.{budget.amount - budget.totalSpend} Remaining
             </h2>
           </div>
           <div
-            className="w-full
-              bg-slate-300 h-2 rounded-full"
+            className="w-full 
+            bg-slate-300 h-2 rounded-full"
           >
             <div
               className={`${getProgressBarColor()} h-2 rounded-full`}

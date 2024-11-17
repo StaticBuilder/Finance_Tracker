@@ -26,13 +26,13 @@ function CardInfo({ budgetList, incomeList, currentUserEmail }) {
     // Return fixed gradient for each card
     switch (card.label) {
       case "Total Budget":
-        return "bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600";
+        return "bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600";
       case "Sum of Income Streams":
         return "bg-gradient-to-r from-green-400 via-green-500 to-green-600";
       case "No. of Budget":
         return "bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600";
       case "Expected Savings":
-        return "bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600";
+        return "bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600";
       case "Actual Savings":
         return "bg-gradient-to-r from-yellow-400 via-yellow-500 to-amber-500";
       default:

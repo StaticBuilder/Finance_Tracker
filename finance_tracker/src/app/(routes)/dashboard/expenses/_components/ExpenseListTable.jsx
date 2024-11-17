@@ -98,13 +98,13 @@ function ExpenseListTable({ budget, expensesList, refreshData }) {
         <h2 className="font-bold text-lg md:text-lg text-sm">Latest Expenses</h2>
         <button
           onClick={exportToPDF}
-          className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors md:text-base text-sm"
-        >
+          className="flex items-center gap-2 bg-red-500 hover:bg-red-600 active:bg-blue-500 text-white px-4 py-2 rounded-lg transition-colors duration-200 md:text-base text-sm"
+        > 
           <FileDown className="w-4 h-4" />
           Export PDF
         </button>
       </div>
-      <div className="grid grid-cols-4 rounded-tl-xl rounded-tr-xl bg-slate-200 p-2 mt-3">
+      <div className="grid grid-cols-4 rounded-tl-xl rounded-tr-xl bg-red-200 p-2 mt-3">
         <h2 className="font-bold md:text-base text-xs">Name</h2>
         <h2 className="font-bold md:text-base text-xs">Amount</h2>
         <h2 className="font-bold md:text-base text-xs text-center">Date</h2>

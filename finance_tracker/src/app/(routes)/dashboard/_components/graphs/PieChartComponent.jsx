@@ -23,7 +23,7 @@ function PieChartComponent({ data }) {
   return (
     <div className="border rounded-2xl p-5">
       <h2 className="font-bold text-lg">Activity - Pie Chart</h2>
-      <ResponsiveContainer width={"80%"} height={400}>
+      <ResponsiveContainer width={"100%"} height={400}>
         <PieChart>
           <Pie
             dataKey="totalSpend"  // Pie slices show the total spend of each category
