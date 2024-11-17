@@ -9,11 +9,30 @@ import { useUser } from '@clerk/nextjs';
 function ExpensesScreen() {
 
   const [expensesList,setExpensesList]=useState([]);
-    const {user}=useUser();
+  const [budgetList, setBudgetList] = useState([]);
+  const {user}=useUser();
 
-    useEffect(()=>{
-        user&&getAllExpenses();
-      },[user])
+  useEffect(()=>{
+    user&&getAllExpenses();
+  },[user])
+
+  const getBudgetList = async () => {
+    const result = await db
+      .select({
+        ...getTableColumns(Budgets),
+
+        totalSpend: sql`sum(${Expenses.amount})`.mapWith(Number),
+        totalItem: sql`count(${Expenses.id})`.mapWith(Number),
+      })
+      .from(Budgets)
+      .leftJoin(Expenses, eq(Budgets.id, Expenses.budgetId))
+      .where(eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress))
+      .groupBy(Budgets.id)
+      .orderBy(desc(Budgets.id));
+    setBudgetList(result);
+    getAllExpenses();
+    getIncomeList();
+  };
     /**
    * Used to get All expenses belong to users
    */
@@ -34,7 +53,7 @@ function ExpensesScreen() {
     <div className='p-10'>
       <h2 className='font-bold text-3xl'>My Expenses</h2>
 
-        <ExpenseListTable refreshData={()=>getAllExpenses()}
+        <ExpenseListTable budget={budgetList} refreshData={()=>getAllExpenses()}
         expensesList={expensesList}
         />
     </div>

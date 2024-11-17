@@ -1,501 +1,141 @@
-how do i correct Unhandled Runtime Error
+how can i modify the div section such that when the screen width is below 550px the <h2
+            onClick={() => deleteExpense(expenses)}
+            className="text-red-500 cursor-pointer flex items-center gap-2"
+          >
+            <Trash className="w-4 h-4" /> Delete
+          </h2> Trash icon is incresed in size <Trash className="w-6 h-6" /> like ive shown the icon is centered in the middle of the action column and the delete text is removed leaving only the icon. The size of the table in whole is decresed as in the current way the table looks crumped in the mobile view. So maybe decrese the size of the text here is the whole code import { db } from "../../../../../../utils/dbConfig";
+import { Expenses } from "../../../../../../utils/schema";
+import { eq } from "drizzle-orm";
+import { Trash, FileDown } from "lucide-react";
+import React from "react";
+import { toast } from "sonner";
+import jsPDF from "jspdf";
+import 'jspdf-autotable';  // You'll need to install this package
 
-NeonDbError: function date_trunc(unknown, character varying) does not exist
+function ExpenseListTable({ budget, expensesList, refreshData }) {
+  const budgetName = budget?.name || "Combined";
+  const deleteExpense = async (expense) => {
+    try {
+      const result = await db
+        .delete(Expenses)
+        .where(eq(Expenses.id, expense.id))
+        .returning();
 
-Call Stack
-captureStackTrace
-file:///C:/Users/user/Documents/VS%20DOCS/Finance_Tracker/finance_tracker/.next/static/chunks/node_modules_next_dist_client_9bb038._.js (302:23)
-console.error
-file:///C:/Users/user/Documents/VS%20DOCS/Finance_Tracker/finance_tracker/.next/static/chunks/node_modules_next_dist_client_9bb038._.js (1034:62)
-useStatisticsData.useEffect.fetchData
-file:///C:/Users/user/Documents/VS%20DOCS/Finance_Tracker/finance_tracker/.next/static/chunks/src_app_(routes)_dashboard_statistics_83d75b._.js (68:33)
-
-in this codes 
-
-// app/dashboard/statistics/_hooks/useStatisticsData.js
-import { useState, useEffect } from 'react';
-import { db } from "../../../../../../utils/dbConfig";
-import { Expenses, Budgets, Incomes } from "../../../../../../utils/schema";
-import { eq, sql } from "drizzle-orm";
-
-export const useStatisticsData = (dataType, userEmail) => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!userEmail) return;
-      
-      setLoading(true);
-      try {
-        let result = [];
-        
-        switch (dataType) {
-          case 'expenses':
-            // Group expenses by month
-            result = await db
-              .select({
-                name: sql`DATE_TRUNC('month', ${Expenses.createdAt})::text`,
-                value: sql`SUM(${Expenses.amount})::float`
-              })
-              .from(Expenses)
-              .groupBy(sql`DATE_TRUNC('month', ${Expenses.createdAt})`)
-              .orderBy(sql`DATE_TRUNC('month', ${Expenses.createdAt})`);
-            break;
-
-          case 'budget':
-            // Compare budget vs actual spending
-            result = await db
-              .select({
-                name: Budgets.name,
-                value: sql`${Budgets.amount} - COALESCE(SUM(${Expenses.amount}), 0)::float as remaining`
-              })
-              .from(Budgets)
-              .leftJoin(Expenses, eq(Budgets.id, Expenses.budgetId))
-              .where(eq(Budgets.createdBy, userEmail))
-              .groupBy(Budgets.id)
-              .orderBy(Budgets.name);
-            break;
-
-          case 'income':
-            // Group income by source
-            result = await db
-              .select({
-                name: Incomes.name,
-                value: sql`SUM(${Incomes.amount})::float`
-              })
-              .from(Incomes)
-              .groupBy(Incomes.name)
-              .orderBy(Incomes.name);
-            break;
-
-          case 'category':
-            // Group expenses by budget category
-            result = await db
-              .select({
-                name: Budgets.name,
-                value: sql`SUM(${Expenses.amount})::float`
-              })
-              .from(Expenses)
-              .leftJoin(Budgets, eq(Budgets.id, Expenses.budgetId))
-              .where(eq(Budgets.createdBy, userEmail))
-              .groupBy(Budgets.name)
-              .orderBy(Budgets.name);
-            break;
-        }
-
-        setData(result);
-      } catch (err) {
-        setError(err);
-        console.error('Error fetching statistics data:', err);
-      } finally {
-        setLoading(false);
+      if (result) {
+        toast.success("Expense Deleted!");
+        await refreshData();
       }
-    };
-
-    fetchData();
-  }, [dataType, userEmail]);
-
-  return { data, loading, error };
-};
-
-// app/dashboard/statistics/page.jsx
-"use client";
-import React, { useState, useEffect } from 'react';
-import { useUser } from "@clerk/nextjs";
-import {
-  Bar,
-  BarChart,
-  LineChart,
-  Line,
-  PieChart,
-  Pie,
-  AreaChart,
-  Area,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-  Legend,
-  Cell,
-} from "recharts";
-import { useStatisticsData } from './_hooks/useStatisticsData';
-
-const StatisticsPage = () => {
-  const { user } = useUser();
-  const [selectedChart, setSelectedChart] = useState('bar');
-  const [selectedData, setSelectedData] = useState('expenses');
-  const [chartData, setChartData] = useState([]);
-
-  const { data, loading, error } = useStatisticsData(
-    selectedData, 
-    user?.primaryEmailAddress?.emailAddress
-  );
-
-  useEffect(() => {
-    if (data) {
-      setChartData(data);
-    }
-  }, [data]);
-
-  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
-
-  const chartTypes = [
-    { value: 'bar', label: 'Bar Chart' },
-    { value: 'line', label: 'Line Chart' },
-    { value: 'pie', label: 'Pie Chart' },
-    { value: 'area', label: 'Area Chart' },
-  ];
-
-  const dataTypes = [
-    { value: 'expenses', label: 'Expenses Over Time' },
-    { value: 'budget', label: 'Budget vs Spending' },
-    { value: 'income', label: 'Income Distribution' },
-    { value: 'category', label: 'Spending by Category' },
-  ];
-
-  const renderChart = () => {
-    if (loading) {
-      return (
-        <div className="flex items-center justify-center h-[400px]">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-        </div>
-      );
-    }
-
-    if (error) {
-      return (
-        <div className="flex items-center justify-center h-[400px] text-red-500">
-          Error loading data. Please try again later.
-        </div>
-      );
-    }
-
-    switch (selectedChart) {
-      case 'bar':
-        return (
-          <ResponsiveContainer width="100%" height={400}>
-            <BarChart data={chartData}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey="value" fill="#4CAF50" />
-            </BarChart>
-          </ResponsiveContainer>
-        );
-
-      case 'line':
-        return (
-          <ResponsiveContainer width="100%" height={400}>
-            <LineChart data={chartData}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="value" stroke="#4CAF50" />
-            </LineChart>
-          </ResponsiveContainer>
-        );
-
-      case 'pie':
-        return (
-          <ResponsiveContainer width="100%" height={400}>
-            <PieChart>
-              <Pie
-                data={chartData}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                outerRadius={150}
-                label
-              >
-                {chartData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        );
-
-      case 'area':
-        return (
-          <ResponsiveContainer width="100%" height={400}>
-            <AreaChart data={chartData}>
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Area type="monotone" dataKey="value" fill="#4CAF50" stroke="#388E3C" />
-            </AreaChart>
-          </ResponsiveContainer>
-        );
-
-      default:
-        return null;
+    } catch (error) {
+      console.error("Error deleting expense:", error);
+      toast.error("Failed to delete expense");
     }
   };
 
-  return (
-    <div className="p-8">
-      <h1 className="text-3xl font-bold mb-6">Statistics Dashboard</h1>
+  const exportToPDF = () => {
+    if (!budget) {
+      toast.error("Budget information not available");
+      return;
+    }
+
+    try {
+      const doc = new jsPDF();
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-2">Chart Type</h2>
-          <p className="text-gray-600 mb-4">Select the type of chart to display</p>
-          <select
-            value={selectedChart}
-            onChange={(e) => setSelectedChart(e.target.value)}
-            className="w-full p-2 border rounded-md"
-          >
-            {chartTypes.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
-        </div>
+      // Use budgetName instead of budget.name directly
+      doc.setFontSize(20);
+      doc.text(${budgetName} Expense Report, 14, 22);
+      
+      // Add timestamp
+      doc.setFontSize(11);
+      doc.text(Generated on: ${new Date().toLocaleString()}, 14, 30);
+      
+      // Prepare the data for the table
+      const tableRows = expensesList.map(expense => [
+        expense.name,
+        Ksh.${expense.amount},
+        expense.createdAt
+        // new Date(expense.createdAt).toLocaleDateString()
+      ]);
+      
+      // Add the table
+      doc.autoTable({
+        startY: 40,
+        head: [['Name', 'Amount', 'Date']],
+        body: tableRows,
+        theme: 'striped',
+        headStyles: { 
+          fillColor: [66, 66, 66],
+          textColor: 255
+        },
+        styles: {
+          overflow: 'linebreak',
+          cellWidth: 'wrap'
+        },
+        columnStyles: {
+          0: { cellWidth: 80 },
+          1: { cellWidth: 50 },
+          2: { cellWidth: 50 }
+        }
+      });
+      
+      // Add total at the bottom
+      const total = expensesList.reduce((sum, expense) => sum + Number(expense.amount), 0);
+      const finalY = doc.previousAutoTable.finalY || 40;
+      doc.setFontSize(12);
+      doc.text(Total Expenses: Ksh.${total.toFixed(2)}, 14, finalY + 10);
+      
+      // Save the PDF
+      doc.save(${budgetName} Expenses.pdf);
+      toast.success("PDF exported successfully!");
+    } catch (error) {
+      console.error("Error exporting PDF:", error);
+      toast.error("Failed to export PDF");
+    }
+  };
 
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-2">Data Type</h2>
-          <p className="text-gray-600 mb-4">Select the data to visualize</p>
-          <select
-            value={selectedData}
-            onChange={(e) => setSelectedData(e.target.value)}
-            className="w-full p-2 border rounded-md"
-          >
-            {dataTypes.map((type) => (
-              <option key={type.value} value={type.value}>
-                {type.label}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
-
-      <div className="bg-white p-6 rounded-lg shadow">
-        <h2 className="text-xl font-semibold mb-2">Data Visualization</h2>
-        <p className="text-gray-600 mb-6">
-          Showing {dataTypes.find(t => t.value === selectedData)?.label} as a {chartTypes.find(t => t.value === selectedChart)?.label}
-        </p>
-        {renderChart()}
-      </div>
-    </div>
+  const totalSpent = expensesList.reduce(
+    (sum, expense) => sum + Number(expense.amount),
+    0
   );
-};
 
-export default StatisticsPage;
+  return (
+    <div className="mt-3">
+      <div className="flex justify-between items-center">
+        <h2 className="font-bold text-lg">Latest Expenses</h2>
+        <button
+          onClick={exportToPDF}
+          className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors"
+        >
+          <FileDown className="w-4 h-4" />
+          Export PDF
+        </button>
+      </div>
+      <div className="grid grid-cols-4 rounded-tl-xl rounded-tr-xl bg-slate-200 p-2 mt-3">
+        <h2 className="font-bold">Name</h2>
+        <h2 className="font-bold">Amount</h2>
+        <h2 className="font-bold">Date</h2>
+        <h2 className="font-bold">Action</h2>
+      </div>
+      {expensesList.map((expenses) => (
+        <div key={expenses.id} className="grid grid-cols-4 bg-slate-50 rounded-bl-xl rounded-br-xl p-2">
+          <h2>{expenses.name}</h2>
+          <h2>Ksh.{expenses.amount}</h2>
+          <h2>{expenses.createdAt}</h2>
+          <h2
+            onClick={() => deleteExpense(expenses)}
+            className="text-red-500 cursor-pointer flex items-center gap-2"
+          >
+            <Trash className="w-4 h-4" /> Delete
+          </h2>
+        </div>
+      ))}
 
-// // app/dashboard/statistics/page.jsx
-// "use client";
-// import React, { useState, useEffect } from 'react';
-// import { useUser } from "@clerk/nextjs";
-// import { Select } from "@/components/ui/select";
-// import {
-//   Card,
-//   CardContent,
-//   CardDescription,
-//   CardHeader,
-//   CardTitle,
-// } from "@/components/ui/card";
-// import {
-//   Bar,
-//   BarChart,
-//   LineChart,
-//   Line,
-//   PieChart,
-//   Pie,
-//   AreaChart,
-//   Area,
-//   ResponsiveContainer,
-//   Tooltip,
-//   XAxis,
-//   YAxis,
-//   Legend,
-//   Cell,
-// } from "recharts";
-// import { useStatisticsData } from './_hooks/useStatisticsData';
+      <div className="mt-3 text-right">
+          <h2 className="font-bold text-red-600">
+            Total Spent: Ksh.{totalSpent.toFixed(2)}
+          </h2>
+        </div>
+      </div>
+  );
+}
 
-// const StatisticsPage = () => {
-//   const { user } = useUser();
-//   const [selectedChart, setSelectedChart] = useState('bar');
-//   const [selectedData, setSelectedData] = useState('expenses');
-//   const [chartData, setChartData] = useState([]);
-
-//   const { data, loading, error } = useStatisticsData(
-//     selectedData, 
-//     user?.primaryEmailAddress?.emailAddress
-//   );
-
-//   useEffect(() => {
-//     if (data) {
-//       setChartData(data);
-//     }
-//   }, [data]);
-
-//   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8'];
-
-//   const chartTypes = [
-//     { value: 'bar', label: 'Bar Chart' },
-//     { value: 'line', label: 'Line Chart' },
-//     { value: 'pie', label: 'Pie Chart' },
-//     { value: 'area', label: 'Area Chart' },
-//   ];
-
-//   const dataTypes = [
-//     { value: 'expenses', label: 'Expenses Over Time' },
-//     { value: 'budget', label: 'Budget vs Spending' },
-//     { value: 'income', label: 'Income Distribution' },
-//     { value: 'category', label: 'Spending by Category' },
-//   ];
-
-//   const renderChart = () => {
-//     if (loading) {
-//       return (
-//         <div className="flex items-center justify-center h-[400px]">
-//           <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
-//         </div>
-//       );
-//     }
-
-//     if (error) {
-//       return (
-//         <div className="flex items-center justify-center h-[400px] text-red-500">
-//           Error loading data. Please try again later.
-//         </div>
-//       );
-//     }
-
-//     switch (selectedChart) {
-//       case 'bar':
-//         return (
-//           <ResponsiveContainer width="100%" height={400}>
-//             <BarChart data={chartData}>
-//               <XAxis dataKey="name" />
-//               <YAxis />
-//               <Tooltip />
-//               <Legend />
-//               <Bar dataKey="value" fill="#4CAF50" />
-//             </BarChart>
-//           </ResponsiveContainer>
-//         );
-
-//       case 'line':
-//         return (
-//           <ResponsiveContainer width="100%" height={400}>
-//             <LineChart data={chartData}>
-//               <XAxis dataKey="name" />
-//               <YAxis />
-//               <Tooltip />
-//               <Legend />
-//               <Line type="monotone" dataKey="value" stroke="#4CAF50" />
-//             </LineChart>
-//           </ResponsiveContainer>
-//         );
-
-//       case 'pie':
-//         return (
-//           <ResponsiveContainer width="100%" height={400}>
-//             <PieChart>
-//               <Pie
-//                 data={chartData}
-//                 dataKey="value"
-//                 nameKey="name"
-//                 cx="50%"
-//                 cy="50%"
-//                 outerRadius={150}
-//                 label
-//               >
-//                 {chartData.map((entry, index) => (
-//                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-//                 ))}
-//               </Pie>
-//               <Tooltip />
-//               <Legend />
-//             </PieChart>
-//           </ResponsiveContainer>
-//         );
-
-//       case 'area':
-//         return (
-//           <ResponsiveContainer width="100%" height={400}>
-//             <AreaChart data={chartData}>
-//               <XAxis dataKey="name" />
-//               <YAxis />
-//               <Tooltip />
-//               <Legend />
-//               <Area type="monotone" dataKey="value" fill="#4CAF50" stroke="#388E3C" />
-//             </AreaChart>
-//           </ResponsiveContainer>
-//         );
-
-//       default:
-//         return null;
-//     }
-//   };
-
-//   return (
-//     <div className="p-8">
-//       <h1 className="text-3xl font-bold mb-6">Statistics Dashboard</h1>
-      
-//       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-//         <Card>
-//           <CardHeader>
-//             <CardTitle>Chart Type</CardTitle>
-//             <CardDescription>Select the type of chart to display</CardDescription>
-//           </CardHeader>
-//           <CardContent>
-//             <Select
-//               value={selectedChart}
-//               onValueChange={setSelectedChart}
-//             >
-//               {chartTypes.map((type) => (
-//                 <option key={type.value} value={type.value}>
-//                   {type.label}
-//                 </option>
-//               ))}
-//             </Select>
-//           </CardContent>
-//         </Card>
-
-//         <Card>
-//           <CardHeader>
-//             <CardTitle>Data Type</CardTitle>
-//             <CardDescription>Select the data to visualize</CardDescription>
-//           </CardHeader>
-//           <CardContent>
-//             <Select
-//               value={selectedData}
-//               onValueChange={setSelectedData}
-//             >
-//               {dataTypes.map((type) => (
-//                 <option key={type.value} value={type.value}>
-//                   {type.label}
-//                 </option>
-//               ))}
-//             </Select>
-//           </CardContent>
-//         </Card>
-//       </div>
-
-//       <Card>
-//         <CardHeader>
-//           <CardTitle>Data Visualization</CardTitle>
-//           <CardDescription>
-//             Showing {dataTypes.find(t => t.value === selectedData)?.label} as a {chartTypes.find(t => t.value === selectedChart)?.label}
-//           </CardDescription>
-//         </CardHeader>
-//         <CardContent className="pt-6">
-//           {renderChart()}
-//         </CardContent>
-//       </Card>
-//     </div>
-//   );
-// };
-
-// export default StatisticsPage;
+export default ExpenseListTable;

@@ -101,6 +101,7 @@ function Dashboard() {
           <BarChartDashboard budgetList={budgetList} />
 
           <ExpenseListTable
+            budget={budgetList}
             expensesList={expensesList}
             refreshData={() => getBudgetList()}
           />
