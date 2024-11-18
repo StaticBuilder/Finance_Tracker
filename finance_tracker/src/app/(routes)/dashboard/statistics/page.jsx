@@ -5,11 +5,7 @@ import { db } from "../../../../../utils/dbConfig";
 import { desc, eq, getTableColumns, sql } from "drizzle-orm";
 import { Budgets, Expenses, Incomes } from "../../../../../utils/schema"; // Make sure Incomes is imported
 import EnhancedUniversalChart from "../_components/graphs/ChartContainer";
-import BarChartSpendVsIncome from "../_components/graphs/BarChartSpendVsIncome";
-import PieChartComponent from "../_components/graphs/PieChartComponent";
-import LineChartComponent from "../_components/graphs/LineChartComponent";
-import ChartContainer from "../_components/graphs/ChartContainer";
-import { UniversalChart } from "../_components/graphs/ChartContainer";
+
 
 function StatisticsPage() {
   const { user } = useUser();
