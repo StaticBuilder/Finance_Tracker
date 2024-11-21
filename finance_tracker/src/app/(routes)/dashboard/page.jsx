@@ -13,6 +13,8 @@ import BarChartComponent from "./_components/graphs/BarChartComponent";
 import LineChartComponent from "./_components/graphs/LineChartComponent";
 import PieChartComponentB from "./_components/graphs/PieChartComponentB";
 import PieChartComponent from "./_components/graphs/PieChartComponent";
+import { ChartWrapper } from "./_components/ChartExport";
+import { ChartExportButton } from "./_components/ChartExport";
 
 function Dashboard() {
   const { user } = useUser();
@@ -188,8 +190,14 @@ function Dashboard() {
                 </div>
               </div>
               
-              {/* Current Chart */}
-              <CurrentChartComponent data={budgetList}/>
+              {/* Wrap the current chart with ChartWrapper */}
+              <ChartWrapper 
+                title={charts[currentChartIndex].exportName}
+                exportable={true}
+              >
+                <CurrentChartComponent data={budgetList}/>
+              </ChartWrapper>
+
             </motion.div>
           </AnimatePresence>
 

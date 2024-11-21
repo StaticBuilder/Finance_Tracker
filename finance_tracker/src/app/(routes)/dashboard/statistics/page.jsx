@@ -5,6 +5,7 @@ import { db } from "../../../../../utils/dbConfig";
 import { desc, eq, getTableColumns, sql } from "drizzle-orm";
 import { Budgets, Expenses, Incomes } from "../../../../../utils/schema"; // Make sure Incomes is imported
 import EnhancedUniversalChart from "../_components/graphs/ChartContainer";
+import { ChartWrapper } from "../_components/ChartExport";
 
 
 function StatisticsPage() {
@@ -234,21 +235,31 @@ function StatisticsPage() {
       {/* Chart Display */}
       <div className="bg-white rounded-lg shadow p-6">
         {selectedComparison === 'budget-list' ? (
-          <EnhancedUniversalChart
-            type={selectedGraph}
-            data={budgetList}
-            dataType="budget"
+          <ChartWrapper 
             title="Budget vs Spend by Category"
-          />
+            exportable={true}
+          >
+            <EnhancedUniversalChart
+              type={selectedGraph}
+              data={budgetList}
+              dataType="budget"
+              title="Budget vs Spend by Category"
+            />
+          </ChartWrapper>
         ) : (
-          <EnhancedUniversalChart
-            type={selectedGraph}
-            dataType="comparison"
-            value1={getCurrentComparison().value1}
-            value2={getCurrentComparison().value2}
-            labels={getCurrentComparison().labels}
+          <ChartWrapper 
             title={getCurrentComparison().label}
-          />
+            exportable={true}
+          >
+            <EnhancedUniversalChart
+              type={selectedGraph}
+              dataType="comparison"
+              value1={getCurrentComparison().value1}
+              value2={getCurrentComparison().value2}
+              labels={getCurrentComparison().labels}
+              title={getCurrentComparison().label}
+            />
+          </ChartWrapper>
         )}
       </div>
     </div>
@@ -257,6 +268,8 @@ function StatisticsPage() {
 
 export default StatisticsPage;
 
+
+                
 // return (
 //   <div className="p-8">
 //     <h1 className="text-3xl font-bold mb-4">User Statistics</h1>
