@@ -34,7 +34,7 @@ function Dashboard() {
     },
     { 
       component: PieChartComponent, 
-      name: "Pie Chart Spend" 
+      name: "Pie Chart Spend Distribution" 
     },
     { 
       component: PieChartComponentB, 

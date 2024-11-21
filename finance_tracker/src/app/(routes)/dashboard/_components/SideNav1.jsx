@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 import {
   LayoutGrid,
   PiggyBank,
@@ -23,34 +24,80 @@ function SideNav1({ closeSideNav }) {
     { id: 5, name: "User - Statistics", icon: PieChart, path: "/dashboard/statistics", color: "text-blue-500", hoverColor: "hover:bg-blue-100" }
   ];
 
-  return (
-    <div className=" p-5 border shadow-sm flex flex-col items-center">
-      {/* User button at the top */}
-      <div className="mb-8 flex flex-col items-center">
-        <UserButton afterSignOutUrl="/" />
-        <span className="text-lg font-bold mt-2">{user?.fullName}</span>
-      </div>
+  // Container animation variants
+  const containerVariants = {
+    hidden: { opacity: 0, x: -50 },
+    visible: {
+      opacity: 1, 
+      x: 0,
+      transition: {
+        delayChildren: 0.2,
+        staggerChildren: 0.1
+      }
+    }
+  };
 
+  // Individual menu item animation variants
+  const menuItemVariants = {
+    hidden: { 
+      opacity: 0, 
+      x: -20,
+      scale: 0.9
+    },
+    visible: { 
+      opacity: 1, 
+      x: 0,
+      scale: 1,
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 20
+      }
+    },
+    hover: {
+      scale: 1.05,
+      transition: {
+        type: "spring",
+        stiffness: 300
+      }
+    }
+  };
+
+  return (
+    <motion.div 
+      className="p-5 border shadow-sm flex flex-col items-center"
+      initial="hidden"
+      animate="visible"
+      variants={containerVariants}
+    >
       {/* Navigation links */}
-      <div className="flex flex-col items-center gap-4 w-full">
+      <motion.div 
+        className="flex flex-col items-center gap-4 w-full"
+      >
         {menuList.map((menu) => (
-          <Link href={menu.path} key={menu.id}>
-            <h2
-              className={`flex gap-4 items-center
-                font-semibold text-lg
-                p-4 cursor-pointer rounded-lg w-full text-center
-                ${menu.color} ${menu.hoverColor}
-                ${path === menu.path ? menu.color + " bg-opacity-20" : ""}
-              `}
-              onClick={closeSideNav}
-            >
-              <menu.icon className={`w-6 h-6 ${menu.color}`} />
-              {menu.name}
-            </h2>
-          </Link>
+          <motion.div
+            key={menu.id}
+            variants={menuItemVariants}
+            whileHover="hover"
+          >
+            <Link href={menu.path}>
+              <motion.div
+                className={`flex gap-4 items-center
+                  font-semibold text-lg
+                  p-4 cursor-pointer rounded-lg w-full text-center
+                  ${menu.color} ${menu.hoverColor}
+                  ${path === menu.path ? menu.color + " bg-opacity-20" : ""}
+                `}
+                onClick={closeSideNav}
+              >
+                <menu.icon className={`w-6 h-6 ${menu.color}`} />
+                {menu.name}
+              </motion.div>
+            </Link>
+          </motion.div>
         ))}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
