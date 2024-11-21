@@ -20,8 +20,8 @@ function DashboardHeader() {
         >
           <Menu size={24} /> {/* Adjust the size as needed */}
         </div>
-        <div>
-          <UserButton afterSignOutUrl="/" />
+        <div className="flex">
+          <UserButton afterSignOutUrl="/"  showName/>
         </div>
       </div>
 

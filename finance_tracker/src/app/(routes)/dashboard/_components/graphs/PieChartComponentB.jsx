@@ -2,39 +2,26 @@ import React from 'react';
 import { PieChart, Pie, Tooltip, ResponsiveContainer, Cell, Legend } from 'recharts';
 
 // Define your colors
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#D0A1F2', '#8E44AD'];
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#D0A1F2', '#8E44AD', '#1ABC9C'];
 
-function PieChartComponent({ data }) {
-  // Transform data to ensure totalSpend is a number
+function PieChartComponentB({ data }) {
+  // Transform data to ensure amount is a number
   const transformedData = data.map(item => ({
     ...item,
-    totalSpend: parseFloat(
-      typeof item.totalSpend === 'string' 
-        ? item.totalSpend.replace(/,/g, '') 
-        : item.totalSpend || 0
-    ),
-    amount: parseFloat(
-      typeof item.amount === 'string' 
-        ? item.amount.replace(/,/g, '') 
-        : item.amount || 0
-    )
+    amount: parseFloat(item.amount.replace(/,/g, '')), // Remove commas and convert to number
   }));
 
   // Custom Tooltip
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
-      const { name, totalSpend, amount, icon } = payload[0].payload;
+      const { name, amount, icon, totalSpend } = payload[0].payload;
       return (
         <div className="custom-tooltip p-2 bg-white border rounded shadow-lg">
           <p className="text-sm text-gray-700">
             <strong>{icon} {name}</strong>
           </p>
-          <p className="text-sm text-blue-500">
-            Budget: Ksh.{amount.toLocaleString()}
-          </p>
-          <p className="text-sm text-red-500">
-            Spent: Ksh.{totalSpend.toLocaleString()}
-          </p>
+          <p className="text-sm text-blue-500">Budget: Ksh.{amount.toLocaleString()}</p>
+          <p className="text-sm text-red-500">Spent: Ksh.{totalSpend}</p>
         </div>
       );
     }
@@ -43,21 +30,18 @@ function PieChartComponent({ data }) {
 
   return (
     <div className="border rounded-2xl p-5 h-[500px]">
-      <h2 className="font-bold text-lg mb-4">Pie Chart: Spend To Budget</h2>
+      <h2 className="font-bold text-lg mb-4">Pie Chart: Budget Allocation</h2>
       <ResponsiveContainer width="100%" height="90%">
         <PieChart>
           <Pie
-            dataKey="totalSpend"
             data={transformedData}
+            dataKey="amount"
+            nameKey="name"
             cx="50%"
             cy="50%"
             outerRadius="70%"
             innerRadius="40%"
-            //paddingAngle={5}
-            // label={({ name, totalSpend, icon }) => 
-            //   `${icon} ${name}: Ksh.${totalSpend.toLocaleString()}`
-            // }
-            // labelLine
+            // paddingAngle={5}
           >
             {transformedData.map((entry, index) => (
               <Cell 
@@ -73,7 +57,7 @@ function PieChartComponent({ data }) {
             align="center"
             formatter={(value, entry) => {
               const { payload } = entry;
-              return `${payload.icon} ${value} (Ksh.${payload.totalSpend.toLocaleString()})`;
+              return `${payload.icon} ${value} (Ksh.${payload.amount.toLocaleString()})`;
             }}
           />
         </PieChart>
@@ -82,4 +66,6 @@ function PieChartComponent({ data }) {
   );
 }
 
-export default PieChartComponent;
+export default PieChartComponentB;
+
+

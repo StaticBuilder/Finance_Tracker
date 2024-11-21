@@ -1,38 +1,71 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { UserButton, useUser } from "@clerk/nextjs";
 import CardInfo from "./_components/CardInfo";
 import { db } from "../../../../utils/dbConfig";
 import { desc, eq, getTableColumns, sql } from "drizzle-orm";
 import { Budgets, Expenses, Incomes } from "../../../../utils/schema";
-import BarChartDashboard from "./_components/BarChartDashboard";
 import BudgetItem from "./budgets/_components/BudgetItem";
 import ExpenseListTable from "./expenses/_components/ExpenseListTable";
 import { Toaster } from "@/components/ui/sonner";
+import BarChartComponent from "./_components/graphs/BarChartComponent";
+import LineChartComponent from "./_components/graphs/LineChartComponent";
+import PieChartComponentB from "./_components/graphs/PieChartComponentB";
+import PieChartComponent from "./_components/graphs/PieChartComponent";
 
 function Dashboard() {
   const { user } = useUser();
-  const [userEmail, setUserEmail] = useState(null); // To hold the user's email
+  const [userEmail, setUserEmail] = useState(null);
   const [budgetList, setBudgetList] = useState([]);
   const [incomeList, setIncomeList] = useState([]);
   const [expensesList, setExpensesList] = useState([]);
-  
-  // useEffect(() => {
-  //   user && getBudgetList();
-  // }, [user]);
-  
+  const [currentChartIndex, setCurrentChartIndex] = useState(0);
+
+  // Array of chart components to rotate through with names
+  const charts = [
+    { 
+      component: BarChartComponent, 
+      name: "Bar Chart" 
+    },
+    { 
+      component: LineChartComponent, 
+      name: "Line Chart" 
+    },
+    { 
+      component: PieChartComponent, 
+      name: "Pie Chart Spend" 
+    },
+    { 
+      component: PieChartComponentB, 
+      name: "Pie Chart Budget Allocation" 
+    }
+  ];
+
   useEffect(() => {
     if (user) {
-      setUserEmail(user.primaryEmailAddress?.emailAddress); // Set the user's email
+      setUserEmail(user.primaryEmailAddress?.emailAddress);
       getBudgetList();
     }
   }, [user]);
 
+  // Chart rotation effect
+  useEffect(() => {
+    const chartRotationInterval = setInterval(() => {
+      setCurrentChartIndex((prevIndex) => 
+        (prevIndex + 1) % charts.length
+      );
+    }, 20000); // 20 seconds
+
+    // Clean up interval on component unmount
+    return () => clearInterval(chartRotationInterval);
+  }, []);
+
+  // Rest of your existing methods (getBudgetList, getIncomeList, getAllExpenses)
   const getBudgetList = async () => {
     const result = await db
       .select({
         ...getTableColumns(Budgets),
-
         totalSpend: sql`sum(${Expenses.amount})`.mapWith(Number),
         totalItem: sql`count(${Expenses.id})`.mapWith(Number),
       })
@@ -46,9 +79,6 @@ function Dashboard() {
     getIncomeList();
   };
 
-  /**
-   * Get Income stream list
-   */
   const getIncomeList = async () => {
     try {
       const result = await db
@@ -59,7 +89,7 @@ function Dashboard() {
           ),
         })
         .from(Incomes)
-        .groupBy(Incomes.id); // Assuming you want to group by ID or any other relevant column
+        .groupBy(Incomes.id);
 
       setIncomeList(result);
     } catch (error) {
@@ -67,9 +97,6 @@ function Dashboard() {
     }
   };
 
-  /**
-   * Used to get All expenses belong to users
-   */
   const getAllExpenses = async () => {
     const result = await db
       .select({
@@ -85,6 +112,36 @@ function Dashboard() {
     setExpensesList(result);
   };
 
+  // Animation variants for chart transitions
+  const chartVariants = {
+    initial: { 
+      opacity: 0, 
+      scale: 0.9,
+      x: 50 // Slide in from right
+    },
+    animate: { 
+      opacity: 1, 
+      scale: 1,
+      x: 0,
+      transition: { 
+        duration: 0.5,
+        type: "tween" 
+      }
+    },
+    exit: { 
+      opacity: 0, 
+      scale: 0.9,
+      x: -50, // Slide out to left
+      transition: { 
+        duration: 0.5,
+        type: "tween" 
+      }
+    }
+  };
+
+  // Get current chart component
+  const CurrentChartComponent = charts[currentChartIndex].component;
+
   return (
     <div className="p-8 bg-">
       <Toaster />
@@ -93,12 +150,48 @@ function Dashboard() {
         Here's what happenning with your money, Lets Manage your expense
       </p>
 
-      {/* Pass the currentUserEmail prop to CardInfo */}
-      <CardInfo budgetList={budgetList} incomeList={incomeList} currentUserEmail={userEmail} />
+      <CardInfo 
+        budgetList={budgetList} 
+        incomeList={incomeList} 
+        currentUserEmail={userEmail} 
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 mt-6 gap-5">
-        <div className="lg:col-span-2">
-          <BarChartDashboard budgetList={budgetList} />
+        <div className="lg:col-span-2 relative">
+          {/* Animated Chart Container */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentChartIndex}
+              variants={chartVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="relative"
+            >
+              {/* Chart Header */}
+              <div className="mb-4 flex justify-between items-center">
+                <h3 className="text-xl font-semibold text-gray-700">
+                  {charts[currentChartIndex].name}
+                </h3>
+                <div className="flex space-x-2">
+                  {charts.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCurrentChartIndex(index)}
+                      className={`h-2 w-2 rounded-full ${
+                        currentChartIndex === index 
+                          ? 'bg-blue-500' 
+                          : 'bg-gray-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+              </div>
+              
+              {/* Current Chart */}
+              <CurrentChartComponent data={budgetList}/>
+            </motion.div>
+          </AnimatePresence>
 
           <ExpenseListTable
             budget={budgetList}
@@ -114,6 +207,7 @@ function Dashboard() {
               ))
             : [1, 2, 3, 4].map((item, index) => (
                 <div
+                  key={index}
                   className="h-[180xp] w-full
                  bg-slate-200 rounded-lg animate-pulse"
                 ></div>

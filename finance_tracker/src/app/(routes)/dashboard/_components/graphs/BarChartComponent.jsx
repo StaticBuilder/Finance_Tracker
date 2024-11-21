@@ -9,14 +9,14 @@ import {
   YAxis,
 } from "recharts";
 
-function BarChartComponent({ budgetList }) {
+function BarChartComponent({ data }) {
 
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
-      const { name, totalSpend, amount } = payload[0].payload;
+      const { name, totalSpend, amount, icon } = payload[0].payload;
       return (
         <div className="custom-tooltip p-2 bg-white border rounded shadow-lg">
-          <p className="text-sm text-gray-700"><strong>{name}</strong></p>
+          <p className="text-sm text-gray-700"><strong>{icon} {name}</strong></p>
           <p className="text-sm text-blue-500">Budget: Ksh.{amount}</p>
           <p className="text-sm text-red-500">Spent: Ksh.{totalSpend}</p>
         </div>
@@ -30,7 +30,7 @@ function BarChartComponent({ budgetList }) {
       <h2 className="font-bold text-lg">Bar Chart: Spend To Budget</h2>
       <ResponsiveContainer width={"80%"} height={300}>
         <BarChart
-          data={budgetList}
+          data={data}
           margin={{
             top: 7,
           }}
