@@ -4,44 +4,72 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { FileDown } from 'lucide-react';
 
-// Utility function for chart export
-// Utility function for chart export
 export const useChartExport = () => {
-  // Export chart to PDF
   const exportChartToPDF = async (chartRef, chartName = 'Chart') => {
-    // Check if the chart reference exists
     if (!chartRef.current) {
       console.error('Chart reference is not available');
       return;
     }
 
     try {
-      // Use html2canvas to capture the chart
+      // Temporarily adjust container for full capture
+      const originalOverflow = chartRef.current.style.overflow;
+      const originalWidth = chartRef.current.style.width;
+      
+      // Ensure full chart is visible
+      chartRef.current.style.overflow = 'visible';
+      chartRef.current.style.width = 'auto';
+
+      // Capture the entire chart content
       const canvas = await html2canvas(chartRef.current, {
-        scale: 2, // Increases resolution
-        useCORS: true, // Handles cross-origin images
-        logging: false // Disables logging
+        scale: 3, // Higher scale for better quality
+        useCORS: true,
+        logging: false,
+        allowTaint: true,
+        scrollX: 0,
+        scrollY: -window.scrollY
       });
 
-      // Create PDF
-      const pdf = new jsPDF('landscape', 'px', 'a4');
-      
-      // Calculate dimensions to fit the page
-      const imgWidth = pdf.internal.pageSize.getWidth() - 40;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      // Restore original styles
+      chartRef.current.style.overflow = originalOverflow;
+      chartRef.current.style.width = originalWidth;
+
+      // Create PDF with dynamic sizing
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: 'a4'
+      });
+
+      // Get PDF page dimensions
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      // Calculate scaling to fit chart
+      const widthRatio = pageWidth / canvas.width;
+      const heightRatio = pageHeight / canvas.height;
+      const scale = Math.min(widthRatio, heightRatio) * 0.9; // 90% of page size
+
+      const scaledWidth = canvas.width * scale;
+      const scaledHeight = canvas.height * scale;
+
+      // Center the image
+      const xPadding = (pageWidth - scaledWidth) / 2;
+      const yPadding = (pageHeight - scaledHeight) / 2;
 
       // Add image to PDF
       pdf.addImage(
         canvas.toDataURL('image/png'), 
         'PNG', 
-        20, // Left margin
-        20, // Top margin
-        imgWidth, 
-        imgHeight
+        xPadding, 
+        yPadding, 
+        scaledWidth, 
+        scaledHeight
       );
 
       // Save PDF
       pdf.save(`${chartName}_Export_${new Date().toISOString().split('T')[0]}.pdf`);
+
     } catch (error) {
       console.error('PDF export failed:', error);
     }
@@ -50,7 +78,7 @@ export const useChartExport = () => {
   return { exportChartToPDF };
 };
 
-// Export Button Component
+// Rest of the components remain the same
 export const ChartExportButton = ({ 
   chartRef, 
   chartName, 
@@ -64,19 +92,21 @@ export const ChartExportButton = ({
       className={`
         flex items-center gap-2 
         bg-blue-500 text-white 
-        px-4 py-2 rounded-lg 
+        px-3 py-1.5 md:px-4 md:py-2 rounded-lg 
         hover:bg-blue-600 
-        transition-colors 
+        transition-all duration-300 
+        transform hover:scale-105 active:scale-95
+        text-xs md:text-sm
         ${className}
       `}
     >
-      <FileDown className="w-5 h-5" />
-      Export PDF
+      <FileDown className="w-4 h-4 md:w-5 md:h-5" />
+      <span className="hidden md:inline">Export PDF</span>
+      <span className="md:hidden">PDF</span>
     </button>
   );
 };
 
-// Enhanced Chart Wrapper Component
 export const ChartWrapper = ({ 
   children, 
   title, 
@@ -101,3 +131,5 @@ export const ChartWrapper = ({
     </div>
   );
 };
+
+
