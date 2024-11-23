@@ -23,6 +23,7 @@ function Dashboard() {
   const [incomeList, setIncomeList] = useState([]);
   const [expensesList, setExpensesList] = useState([]);
   const [currentChartIndex, setCurrentChartIndex] = useState(0);
+  const [greeting, setGreeting] = useState(getGreeting());
 
   // Array of chart components to rotate through with names
   const charts = [
@@ -49,6 +50,13 @@ function Dashboard() {
       setUserEmail(user.primaryEmailAddress?.emailAddress);
       getBudgetList();
     }
+
+    // Dynamic greeting updater
+    const interval = setInterval(() => {
+      setGreeting(getGreeting());
+    }, 60000); // Update every minute
+
+    return () => clearInterval(interval); // Cleanup interval on unmount
   }, [user]);
 
   // Chart rotation effect
@@ -147,9 +155,11 @@ function Dashboard() {
   return (
     <div className="p-8 bg-">
       <Toaster />
-      <h2 className="font-bold text-4xl">Hi, {user?.fullName} 👋</h2>
+      <h2 className="font-bold text-4xl">
+      {greeting.greeting}, {user?.fullName} {greeting.emoji}
+      </h2>
       <p className="text-gray-500">
-        Here's what happenning with your money, Lets Manage your expense
+        Stay on top of your finances—let's manage your expenses effectively!
       </p>
 
       <CardInfo 
@@ -227,3 +237,11 @@ function Dashboard() {
 }
 
 export default Dashboard;
+
+// Utility function to get the greeting
+function getGreeting() {
+  const hours = new Date().getHours();
+  if (hours < 12) return { greeting: "Good Morning", emoji: "☀️" };
+  if (hours < 18) return { greeting: "Good Afternoon", emoji: "🌤️" };
+  return { greeting: "Good Evening", emoji: "🌙" };
+}

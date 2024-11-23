@@ -2,10 +2,18 @@
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import React from "react";
+import { useUser, UserButton } from "@clerk/nextjs";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const transition = {
   duration: 0,
   ease: "linear",
+};
+
+const buttonVariants = {
+  hover: { scale: 1.1, backgroundColor: "#45a049", transition: { duration: 0.3 } },
+  tap: { scale: 0.95, transition: { duration: 0.2 } },
 };
 
 export const GoogleGeminiEffect = ({
@@ -25,13 +33,19 @@ export const GoogleGeminiEffect = ({
         {description ||
           `Keep scrolling to watch your finances grow and track every Shilling in motion. With each scroll, uncover insights that bring you closer to your financial goals!`}
       </p>
-      <div
-        className="w-full h-[890px] -top-60 md:-top-40  flex items-center justify-center bg-red-transparent absolute ">
-        <button
-          className="font-bold bg-white rounded-full md:px-4 md:py-2 px-2 py-1 md:mt-24 mt-8 z-30 md:text-base text-black text-xs  w-fit mx-auto ">
-          Finance Tracker
-        </button>
-      </div>
+      <Link href={"/sign-in"}>
+        <div
+          className="w-full h-[890px] -top-60 md:-top-40  flex items-center justify-center bg-red-transparent absolute ">
+            <motion.button
+              className="font-bold bg-[#4CAF50] rounded-full md:px-4 md:py-2 px-2 py-1 md:mt-24 mt-8 z-30 md:text-base text-white text-xs w-fit mx-auto"
+              variants={buttonVariants}
+              whileHover="hover"
+              whileTap="tap"
+            >
+              Get Started With Finance Tracker
+            </motion.button>
+        </div>
+      </Link>
       <svg
         width="1440"
         height="890"

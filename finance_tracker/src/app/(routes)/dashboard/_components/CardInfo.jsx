@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import formatNumber from "../../../../../utils";
 import getFinancialAdvice from "../../../../../utils/getFinancialAdvice";
-import { Sparkles, CreditCard, ShoppingCart, List, TrendingUp, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { Sparkles, CreditCard, ShoppingCart, List, TrendingUp, ArrowDownCircle, ArrowUpCircle, ShieldCheck } from 'lucide-react';
 import financialAdviceData from "@/app/financialAdviceData";
 
 function CardInfo({ budgetList, incomeList, currentUserEmail }) {
@@ -146,8 +146,8 @@ function CardInfo({ budgetList, incomeList, currentUserEmail }) {
           <div className="p-7 border mt-4 -mb-1 rounded-2xl flex items-center justify-between">
             <div>
               <div className="flex mb-2 flex-row space-x-1 items-center">
-                <h2 className="text-md">Finance Tracker AI</h2>
-                <Sparkles className="rounded-full text-white w-10 h-10 p-2 bg-gradient-to-r from-green-400 via-green-500 to-green-700 background-animate" />
+                <h2 className="text-md">Finance Tracker Advisor</h2>
+                <ShieldCheck className="rounded-full text-white w-10 h-10 p-2 bg-gradient-to-r from-green-400 via-green-500 to-green-700 background-animate" />
               </div>
               <h2 className="font-light text-md">
                 {financialAdvice || "Loading financial advice..."}
