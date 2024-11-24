@@ -27,9 +27,9 @@ function CardInfo({ budgetList, incomeList, currentUserEmail }) {
     switch (card.label) {
       case "Total Budget":
         return "bg-gradient-to-r from-orange-400 via-orange-500 to-orange-600";
-      case "Sum of Income Streams":
+      case "Total Income":
         return "bg-gradient-to-r from-green-400 via-green-500 to-green-600";
-      case "No. of Budget":
+      case "No. of Budgets":
         return "bg-gradient-to-r from-purple-400 via-purple-500 to-purple-600";
       case "Expected Savings":
         return "bg-gradient-to-r from-blue-400 via-blue-500 to-blue-600";
@@ -147,7 +147,11 @@ function CardInfo({ budgetList, incomeList, currentUserEmail }) {
             <div>
               <div className="flex mb-2 flex-row space-x-1 items-center">
                 <h2 className="text-md">Finance Tracker Advisor</h2>
-                <ShieldCheck className="rounded-full text-white w-10 h-10 p-2 bg-gradient-to-r from-green-400 via-green-500 to-green-700 background-animate" />
+                <ShieldCheck className="rounded-full text-white w-10 h-10 p-2 bg-gradient-to-r 
+                from-green-500 
+                via-orange-500 
+                to-red-500 
+                background-animate" />
               </div>
               <h2 className="font-light text-md">
                 {financialAdvice || "Loading financial advice..."}
@@ -159,8 +163,8 @@ function CardInfo({ budgetList, incomeList, currentUserEmail }) {
             {[
               { label: "Total Budget", value: formatNumber(totalBudget), icon: CreditCard },
               { label: "Total Spend", value: formatNumber(totalSpend), icon: ShoppingCart },
-              { label: "No. of Budget", value: budgetList?.length, icon: List },
-              { label: "Sum of Income Streams", value: formatNumber(totalIncome), icon: TrendingUp },
+              { label: "No. of Budgets", value: budgetList?.length, icon: List },
+              { label: "Total Income", value: formatNumber(totalIncome), icon: TrendingUp },
               { label: "Expected Savings", value: formatNumber(expectedSavings), icon: ArrowDownCircle },
               { label: "Actual Savings", value: formatNumber(actualSavings), icon: ArrowUpCircle },
             ].map((card, index) => (

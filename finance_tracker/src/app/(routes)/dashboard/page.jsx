@@ -159,7 +159,7 @@ function Dashboard() {
       {greeting.greeting}, {user?.fullName} {greeting.emoji}
       </h2>
       <p className="text-gray-500">
-        Stay on top of your finances—let's manage your expenses effectively!
+        Stay ON TOP of your finances 😎. Let's TRACK & MANAGE your expenses effectively!!!🪙💰
       </p>
 
       <CardInfo 
