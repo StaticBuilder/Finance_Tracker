@@ -9,14 +9,25 @@ import { Dialog,
   DialogTitle,
   DialogTrigger,
  } from "@/components/ui/dialog";
-  
+import { AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+ } from "@/components/ui/alert-dialog";
 import EmojiPicker from "emoji-picker-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { db } from "../../../../../../utils/dbConfig";
-import { Incomes } from "../../../../../../utils/schema";
+import { eq } from "drizzle-orm";
+import { Incomes, PeriodSelected } from "../../../../../../utils/schema";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
+import { TimeFrameContext } from "@/components/ui/TimeFrameProvider"; 
+import { useRouter } from "next/navigation";
 
 function CreateIncomes({ refreshData }) {
   const [emojiIcon, setEmojiIcon] = useState("😀");
@@ -26,23 +37,40 @@ function CreateIncomes({ refreshData }) {
   const [amount, setAmount] = useState();
 
   const { user } = useUser();
+  const router = useRouter();
 
   /**
    * Used to Create New Budget
    */
   const onCreateIncomes = async () => {
+
+    // Fetch the selected period for the user
+    const selectedPeriod = await db
+    .select()
+    .from(PeriodSelected)
+    .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
+    .then(rows => rows[0] || {});
+
+    if (!selectedPeriod.periodId || selectedPeriod == 0) {
+      // Route to timeframe setup if no period is selected
+      toast('Choose A TimeFrame First');
+      router.replace("/dashboard/timeframe");
+      return;
+    }
     const result = await db
       .insert(Incomes)
       .values({
         name: name,
         amount: amount,
         createdBy: user?.primaryEmailAddress?.emailAddress,
+        periodId: selectedPeriod.periodId,
         icon: emojiIcon,
       })
       .returning({ insertedId: Incomes.id });
 
     if (result) {
       refreshData();
+      console.log(result);
       toast("New Income Source Created!");
     }
   };

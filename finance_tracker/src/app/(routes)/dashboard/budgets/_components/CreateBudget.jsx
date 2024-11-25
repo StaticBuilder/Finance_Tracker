@@ -14,9 +14,11 @@ import EmojiPicker from "emoji-picker-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { db } from "../../../../../../utils/dbConfig";
-import { Budgets } from "../../../../../../utils/schema";
+import { eq } from "drizzle-orm";
+import { Budgets, PeriodSelected } from "../../../../../../utils/schema";
 import { useUser } from "@clerk/nextjs";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
+import { useRouter } from "next/navigation";
 import tailwindConfig from "../../../../../../tailwind.config";
 
 function CreateBudget({ refreshData }) {
@@ -27,24 +29,39 @@ function CreateBudget({ refreshData }) {
   const [amount, setAmount] = useState();
 
   const { user } = useUser();
+  const router = useRouter();
 
   /**
    * Used to Create New Budget
    */
   const onCreateBudget = async () => {
+    // Fetch the selected period for the user
+    const selectedPeriod = await db
+    .select()
+    .from(PeriodSelected)
+    .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
+    .then(rows => rows[0] || {});
+
+    if (!selectedPeriod.periodId || selectedPeriod == 0) {
+      // Route to timeframe setup if no period is selected
+      toast('Choose A TimeFrame First');
+      router.replace("/dashboard/timeframe");
+      return;
+    }
     const result = await db
       .insert(Budgets)
       .values({
         name: name,
         amount: amount,
         createdBy: user?.primaryEmailAddress?.emailAddress,
+        periodId: selectedPeriod.periodId,
         icon: emojiIcon,
       })
       .returning({ insertedId: Budgets.id });
 
     if (result) {
       refreshData();
-      Toaster("New Budget Created!");
+      toast("New Budget Created!");
     }
   };
   return (

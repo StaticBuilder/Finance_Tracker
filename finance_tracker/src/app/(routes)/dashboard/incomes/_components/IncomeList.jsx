@@ -2,20 +2,38 @@
 import React, { useEffect, useState } from "react";
 import CreateIncomes from "./CreateIncomes";
 import { db } from "../../../../../../utils/dbConfig";
-import { desc, eq, getTableColumns, sql } from "drizzle-orm";
-import { Incomes, Expenses } from "../../../../../../utils/schema";
+import { desc, eq, getTableColumns, sql, and } from "drizzle-orm";
+import { Incomes, Expenses, PeriodSelected } from "../../../../../../utils/schema";
 import { useUser } from "@clerk/nextjs";
 import IncomeItem from "./IncomeItem";
+import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 function IncomeList() {
   const [incomelist, setIncomelist] = useState([]);
   const { user } = useUser();
+  const router = useRouter();
 
   useEffect(() => {
     user && getIncomelist();
   }, [user]);
 
   const getIncomelist = async () => {
+    // Fetch the selected period for the user
+    const selectedPeriod = await db
+    .select()
+    .from(PeriodSelected)
+    .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
+    .then(rows => rows[0] || {});
+
+    if (!selectedPeriod.periodId || selectedPeriod == 0) {
+      // Route to timeframe setup if no period is selected
+      router.replace("/dashboard/timeframe");
+      toast('Choose A TimeFrame First', {
+        duration: 10000, // Duration in milliseconds (5 seconds)
+      });
+      return;
+    }
     const result = await db
       .select({
         ...getTableColumns(Incomes),
@@ -24,7 +42,11 @@ function IncomeList() {
       })
       .from(Incomes)
       .leftJoin(Expenses, eq(Incomes.id, Expenses.budgetId))
-      .where(eq(Incomes.createdBy, user?.primaryEmailAddress?.emailAddress))
+      .where(
+        and(
+          eq(Incomes.createdBy, user?.primaryEmailAddress?.emailAddress),
+          eq(selectedPeriod.periodId, Incomes.periodId)
+        ))
       .groupBy(Incomes.id)
       .orderBy(desc(Incomes.id));
     setIncomelist(result);

@@ -2,15 +2,19 @@
 import React, { useEffect, useState } from 'react'
 import CreateBudget from './CreateBudget'
 import { db } from '../../../../../../utils/dbConfig'
-import { desc, eq, getTableColumns, sql } from 'drizzle-orm'
-import { Budgets, Expenses } from '../../../../../../utils/schema'
+import { desc, eq, getTableColumns, sql, and } from 'drizzle-orm'
+import { Budgets, Expenses, PeriodSelected } from '../../../../../../utils/schema'
 import { useUser } from '@clerk/nextjs'
-import BudgetItem from './BudgetItem'
+import BudgetItem from './BudgetItem';
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 function BudgetList() {
 
   const [budgetList,setBudgetList]=useState([]);
   const {user}=useUser();
+  const router = useRouter();
+
   useEffect(()=>{
     user&&getBudgetList();
   },[user])
@@ -18,6 +22,21 @@ function BudgetList() {
    * used to get budget List
    */
   const getBudgetList=async()=>{
+    // Fetch the selected period for the user
+    const selectedPeriod = await db
+    .select()
+    .from(PeriodSelected)
+    .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
+    .then(rows => rows[0] || {});
+
+    if (!selectedPeriod.periodId || selectedPeriod == 0) {
+      // Route to timeframe setup if no period is selected
+      router.replace("/dashboard/timeframe");
+      toast('Choose A TimeFrame First', {
+        duration: 10000, // Duration in milliseconds (5 seconds)
+      });
+      return;
+    }
 
     const result=await db.select({
       ...getTableColumns(Budgets),
@@ -25,7 +44,11 @@ function BudgetList() {
       totalItem: sql `count(${Expenses.id})`.mapWith(Number)
     }).from(Budgets)
     .leftJoin(Expenses,eq(Budgets.id,Expenses.budgetId))
-    .where(eq(Budgets.createdBy,user?.primaryEmailAddress?.emailAddress))
+    .where(
+      and(
+        eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress),
+        eq(selectedPeriod.periodId, Budgets.periodId)
+      ))
     .groupBy(Budgets.id)
     .orderBy(desc(Budgets.id))
     ;

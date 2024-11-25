@@ -1,6 +1,7 @@
 import { ClerkProvider } from "@clerk/nextjs";
 import localFont from "next/font/local";
 import "./globals.css";
+import TimeFrameProvider from "@/components/ui/TimeFrameProvider";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -27,7 +28,9 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+          <TimeFrameProvider>
+            {children}
+          </TimeFrameProvider>
       </body>
     </html>
     </ClerkProvider>

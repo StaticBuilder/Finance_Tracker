@@ -2,10 +2,12 @@
 import React, { useEffect, useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import { db } from "../../../../../utils/dbConfig";
-import { desc, eq, getTableColumns, sql } from "drizzle-orm";
-import { Budgets, Expenses, Incomes } from "../../../../../utils/schema"; // Make sure Incomes is imported
+import { desc, eq, getTableColumns, sql, and } from "drizzle-orm";
+import { Budgets, Expenses, Incomes, PeriodSelected } from "../../../../../utils/schema"; // Make sure Incomes is imported
 import EnhancedUniversalChart from "../_components/graphs/ChartContainer";
+import { useRouter } from "next/navigation";
 import { ChartWrapper } from "../_components/ChartExport";
+import { toast } from "sonner";
 
 
 function StatisticsPage() {
@@ -21,6 +23,8 @@ function StatisticsPage() {
   const [actualSavings, setActualSavings] = useState(0);
   const [selectedGraph, setSelectedGraph] = useState("bar");
   const [incomeList, setIncomeList] = useState([]);
+  const router = useRouter();
+
 
   useEffect(() => {
     if (user) {
@@ -43,7 +47,21 @@ function StatisticsPage() {
   const getIncomeList = async () => {
     try {
       if (!user?.primaryEmailAddress?.emailAddress) return;
+      // Fetch the selected period for the user
+      const selectedPeriod = await db
+      .select()
+      .from(PeriodSelected)
+      .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
+      .then(rows => rows[0] || {});
 
+      if (!selectedPeriod.periodId || selectedPeriod == 0) {
+        // Route to timeframe setup if no period is selected
+        router.replace("/dashboard/timeframe");
+        toast('Choose A TimeFrame First', {
+          duration: 10000, // Duration in milliseconds (5 seconds)
+        });
+        return;
+      }
       const result = await db
         .select({
           ...getTableColumns(Incomes),
@@ -52,7 +70,10 @@ function StatisticsPage() {
           ),
         })
         .from(Incomes)
-        .where(eq(Incomes.createdBy, user.primaryEmailAddress.emailAddress))
+        // .where(eq(Incomes.createdBy, user.primaryEmailAddress.emailAddress))
+        .where(
+          eq(selectedPeriod.periodId, Incomes.periodId)
+        )
         .groupBy(Incomes.id);
 
       console.log('Fetched income list:', result); // Debug log
@@ -65,7 +86,21 @@ function StatisticsPage() {
   const getBudgetList = async () => {
     try {
       if (!user?.primaryEmailAddress?.emailAddress) return;
+        // Fetch the selected period for the user
+      const selectedPeriod = await db
+      .select()
+      .from(PeriodSelected)
+      .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
+      .then(rows => rows[0] || {});
 
+      if (!selectedPeriod.periodId || selectedPeriod == 0) {
+        // Route to timeframe setup if no period is selected
+        router.replace("/dashboard/timeframe");
+        toast('Choose A TimeFrame First', {
+          duration: 10000, // Duration in milliseconds (5 seconds)
+        });
+        return;
+      }
       const result = await db
         .select({
           ...getTableColumns(Budgets),
@@ -74,7 +109,11 @@ function StatisticsPage() {
         })
         .from(Budgets)
         .leftJoin(Expenses, eq(Budgets.id, Expenses.budgetId))
-        .where(eq(Budgets.createdBy, user.primaryEmailAddress.emailAddress))
+        .where(
+          and(
+            eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress),
+            eq(selectedPeriod.periodId, Budgets.periodId)
+          ))
         .groupBy(Budgets.id)
         .orderBy(desc(Budgets.id));
 

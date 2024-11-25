@@ -4,8 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { UserButton, useUser } from "@clerk/nextjs";
 import CardInfo from "./_components/CardInfo";
 import { db } from "../../../../utils/dbConfig";
-import { desc, eq, getTableColumns, sql } from "drizzle-orm";
-import { Budgets, Expenses, Incomes } from "../../../../utils/schema";
+import { desc, eq, getTableColumns, sql, and } from "drizzle-orm";
+import { Budgets, Expenses, Incomes, PeriodSelected } from "../../../../utils/schema";
 import BudgetItem from "./budgets/_components/BudgetItem";
 import ExpenseListTable from "./expenses/_components/ExpenseListTable";
 import { Toaster } from "@/components/ui/sonner";
@@ -14,6 +14,8 @@ import LineChartComponent from "./_components/graphs/LineChartComponent";
 import PieChartComponentB from "./_components/graphs/PieChartComponentB";
 import PieChartComponent from "./_components/graphs/PieChartComponent";
 import { ChartWrapper } from "./_components/ChartExport";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { ChartExportButton } from "./_components/ChartExport";
 
 function Dashboard() {
@@ -24,6 +26,7 @@ function Dashboard() {
   const [expensesList, setExpensesList] = useState([]);
   const [currentChartIndex, setCurrentChartIndex] = useState(0);
   const [greeting, setGreeting] = useState(getGreeting());
+  const router = useRouter();
 
   // Array of chart components to rotate through with names
   const charts = [
@@ -73,6 +76,21 @@ function Dashboard() {
 
   // Rest of your existing methods (getBudgetList, getIncomeList, getAllExpenses)
   const getBudgetList = async () => {
+    // Fetch the selected period for the user
+    const selectedPeriod = await db
+    .select()
+    .from(PeriodSelected)
+    .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
+    .then(rows => rows[0] || {});
+
+    if (!selectedPeriod.periodId || selectedPeriod == 0) {
+      // Route to timeframe setup if no period is selected
+      router.replace("/dashboard/timeframe");
+      toast('Choose A TimeFrame First', {
+        duration: 10000, // Duration in milliseconds (5 seconds)
+      });
+      return;
+    }
     const result = await db
       .select({
         ...getTableColumns(Budgets),
@@ -81,7 +99,11 @@ function Dashboard() {
       })
       .from(Budgets)
       .leftJoin(Expenses, eq(Budgets.id, Expenses.budgetId))
-      .where(eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress))
+      .where(
+        and(
+          eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress),
+          eq(selectedPeriod.periodId, Budgets.periodId)
+        ))
       .groupBy(Budgets.id)
       .orderBy(desc(Budgets.id));
     setBudgetList(result);
@@ -91,6 +113,21 @@ function Dashboard() {
 
   const getIncomeList = async () => {
     try {
+        // Fetch the selected period for the user
+      const selectedPeriod = await db
+      .select()
+      .from(PeriodSelected)
+      .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
+      .then(rows => rows[0] || {});
+
+      if (!selectedPeriod.periodId || selectedPeriod == 0) {
+        // Route to timeframe setup if no period is selected
+        router.replace("/dashboard/timeframe");
+        toast('Choose A TimeFrame First', {
+          duration: 10000, // Duration in milliseconds (5 seconds)
+        });
+        return;
+      }
       const result = await db
         .select({
           ...getTableColumns(Incomes),
@@ -99,15 +136,34 @@ function Dashboard() {
           ),
         })
         .from(Incomes)
+        .where(
+            eq(selectedPeriod.periodId, Incomes.periodId)
+          )
         .groupBy(Incomes.id);
 
       setIncomeList(result);
+      console.log(result)
     } catch (error) {
       console.error("Error fetching income list:", error);
     }
   };
 
   const getAllExpenses = async () => {
+    // Fetch the selected period for the user
+    const selectedPeriod = await db
+    .select()
+    .from(PeriodSelected)
+    .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
+    .then(rows => rows[0] || {});
+
+    if (!selectedPeriod.periodId || selectedPeriod == 0) {
+      // Route to timeframe setup if no period is selected
+      router.replace("/dashboard/timeframe");
+      toast('Choose A TimeFrame First', {
+        duration: 10000, // Duration in milliseconds (5 seconds)
+      });
+      return;
+    }
     const result = await db
       .select({
         id: Expenses.id,
@@ -117,7 +173,11 @@ function Dashboard() {
       })
       .from(Budgets)
       .rightJoin(Expenses, eq(Budgets.id, Expenses.budgetId))
-      .where(eq(Budgets.createdBy, user?.primaryEmailAddress.emailAddress))
+      .where(
+        and(
+          eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress),
+          eq(selectedPeriod.periodId, Budgets.periodId)
+        ))
       .orderBy(desc(Expenses.id));
     setExpensesList(result);
   };
