@@ -7,6 +7,7 @@ import { useUser } from "@clerk/nextjs";
 import CreateTimeFrame from "./_components/CreateTimeFrame";
 import { toast } from "sonner";
 import TimeFramesCreated from "./_components/TimeFrameCreated";
+import SelectAllButton from "./_components/SelectAllButton";
 
 
 function TimeFrame() {
@@ -67,6 +68,10 @@ function TimeFrame() {
       {/* Create New TimeFrame Button */}
       <div className="mb-6">
         <CreateTimeFrame refreshData={getPeriodList} />
+      </div>
+
+      <div className="mb-4">
+        <SelectAllButton periods={periodList} />
       </div>
 
       {/* Time Frames Grid */}

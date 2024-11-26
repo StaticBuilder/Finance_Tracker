@@ -1,3 +1,9 @@
+based on the knowledge u have on the code below i wnat you to implement a code here 
+<div className="">
+<button className="">Select All</button>
+</div> 
+such that when this button is clicked it will alert the user if he is sure he wants to selext all periods if he confirms all perriods will be slected then the button switches to red and reads unselect then when the user clicks it alerts him if he wants to unselect all if yes all are unselected. But in the meantime when all were selected if the user lets say manually unselects all the Periods one by one the button will track so that when none is selected it will automatically turn green and read select all again 
+
 "use client"
 import React, { useEffect, useState } from "react";
 import { db } from "../../../../../utils/dbConfig";
@@ -67,6 +73,9 @@ function TimeFrame() {
       {/* Create New TimeFrame Button */}
       <div className="mb-6">
         <CreateTimeFrame refreshData={getPeriodList} />
+      </div>
+      <div className="">
+        <button className="">Select All</button>
       </div>
 
       {/* Time Frames Grid */}
