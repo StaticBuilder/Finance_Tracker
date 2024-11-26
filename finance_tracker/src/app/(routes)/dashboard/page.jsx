@@ -1,11 +1,11 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { UserButton, useUser } from "@clerk/nextjs";
 import CardInfo from "./_components/CardInfo";
 import { db } from "../../../../utils/dbConfig";
-import { desc, eq, getTableColumns, sql, and } from "drizzle-orm";
-import { Budgets, Expenses, Incomes, PeriodSelected } from "../../../../utils/schema";
+import { desc, eq, getTableColumns, sql, and, inArray } from "drizzle-orm";
+import { Budgets, Expenses, Incomes, PeriodSelected, Periods } from "../../../../utils/schema";
 import BudgetItem from "./budgets/_components/BudgetItem";
 import ExpenseListTable from "./expenses/_components/ExpenseListTable";
 import { Toaster } from "@/components/ui/sonner";
@@ -17,13 +17,16 @@ import { ChartWrapper } from "./_components/ChartExport";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { ChartExportButton } from "./_components/ChartExport";
+import { TimeFrameContext } from "@/components/ui/TimeFrameProvider";
 
 function Dashboard() {
   const { user } = useUser();
   const [userEmail, setUserEmail] = useState(null);
+  const { selectedTimeFrames } = useContext(TimeFrameContext);
   const [budgetList, setBudgetList] = useState([]);
   const [incomeList, setIncomeList] = useState([]);
   const [expensesList, setExpensesList] = useState([]);
+  const [periodNames, setPeriodNames] = useState({});
   const [currentChartIndex, setCurrentChartIndex] = useState(0);
   const [greeting, setGreeting] = useState(getGreeting());
   const router = useRouter();
@@ -49,9 +52,15 @@ function Dashboard() {
   ];
 
   useEffect(() => {
-    if (user) {
+    if (user && selectedTimeFrames && selectedTimeFrames.length > 0) {
       setUserEmail(user.primaryEmailAddress?.emailAddress);
       getBudgetList();
+    } else if (user && (!selectedTimeFrames || selectedTimeFrames.length === 0)) {
+      // Route to timeframe setup if no period is selected
+      router.replace("/dashboard/timeframe");
+      toast('Choose A TimeFrame First', {
+        duration: 10000,
+      });
     }
 
     // Dynamic greeting updater
@@ -60,7 +69,7 @@ function Dashboard() {
     }, 60000); // Update every minute
 
     return () => clearInterval(interval); // Cleanup interval on unmount
-  }, [user]);
+  }, [user, selectedTimeFrames]);
 
   // Chart rotation effect
   useEffect(() => {
@@ -76,110 +85,84 @@ function Dashboard() {
 
   // Rest of your existing methods (getBudgetList, getIncomeList, getAllExpenses)
   const getBudgetList = async () => {
-    // Fetch the selected period for the user
-    const selectedPeriod = await db
-    .select()
-    .from(PeriodSelected)
-    .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
-    .then(rows => rows[0] || {});
+    try {
+      if (!user?.primaryEmailAddress?.emailAddress) return;
 
-    if (!selectedPeriod.periodId || selectedPeriod == 0) {
-      // Route to timeframe setup if no period is selected
-      router.replace("/dashboard/timeframe");
-      toast('Choose A TimeFrame First', {
-        duration: 10000, // Duration in milliseconds (5 seconds)
-      });
-      return;
+      const result = await db
+        .select({
+          ...getTableColumns(Budgets),
+          periodId: Budgets.periodId,
+          totalSpend: sql`COALESCE(sum(${Expenses.amount}), 0)`.mapWith(Number),
+          totalItem: sql`count(${Expenses.id})`.mapWith(Number),
+        })
+        .from(Budgets)
+        .leftJoin(Expenses, eq(Budgets.id, Expenses.budgetId))
+        .where(
+          and(
+            eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress),
+            inArray(Budgets.periodId, selectedTimeFrames)
+          ))
+        .groupBy(Budgets.id, Budgets.periodId)
+        .orderBy(desc(Budgets.id));
+
+      setBudgetList(result);
+      getAllExpenses();
+      getIncomeList();
+    } catch (error) {
+      console.error("Error fetching budget list:", error);
     }
-    const result = await db
-      .select({
-        ...getTableColumns(Budgets),
-        totalSpend: sql`sum(${Expenses.amount})`.mapWith(Number),
-        totalItem: sql`count(${Expenses.id})`.mapWith(Number),
-      })
-      .from(Budgets)
-      .leftJoin(Expenses, eq(Budgets.id, Expenses.budgetId))
-      .where(
-        and(
-          eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress),
-          eq(selectedPeriod.periodId, Budgets.periodId)
-        ))
-      .groupBy(Budgets.id)
-      .orderBy(desc(Budgets.id));
-    setBudgetList(result);
-    getAllExpenses();
-    getIncomeList();
   };
 
   const getIncomeList = async () => {
     try {
-        // Fetch the selected period for the user
-      const selectedPeriod = await db
-      .select()
-      .from(PeriodSelected)
-      .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
-      .then(rows => rows[0] || {});
+      if (!user?.primaryEmailAddress?.emailAddress) return;
 
-      if (!selectedPeriod.periodId || selectedPeriod == 0) {
-        // Route to timeframe setup if no period is selected
-        router.replace("/dashboard/timeframe");
-        toast('Choose A TimeFrame First', {
-          duration: 10000, // Duration in milliseconds (5 seconds)
-        });
-        return;
-      }
       const result = await db
         .select({
           ...getTableColumns(Incomes),
-          totalAmount: sql`SUM(CAST(${Incomes.amount} AS NUMERIC))`.mapWith(
-            Number
-          ),
+          periodId: Incomes.periodId,
+          totalAmount: sql`SUM(CAST(${Incomes.amount} AS NUMERIC))`.mapWith(Number),
         })
         .from(Incomes)
         .where(
-            eq(selectedPeriod.periodId, Incomes.periodId)
+          and(
+            eq(Incomes.createdBy, user.primaryEmailAddress.emailAddress),
+            inArray(Incomes.periodId, selectedTimeFrames)
           )
-        .groupBy(Incomes.id);
+        )
+        .groupBy(Incomes.id, Incomes.periodId);
 
       setIncomeList(result);
-      console.log(result)
     } catch (error) {
       console.error("Error fetching income list:", error);
     }
   };
 
   const getAllExpenses = async () => {
-    // Fetch the selected period for the user
-    const selectedPeriod = await db
-    .select()
-    .from(PeriodSelected)
-    .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
-    .then(rows => rows[0] || {});
+    try {
+      if (!user?.primaryEmailAddress?.emailAddress) return;
 
-    if (!selectedPeriod.periodId || selectedPeriod == 0) {
-      // Route to timeframe setup if no period is selected
-      router.replace("/dashboard/timeframe");
-      toast('Choose A TimeFrame First', {
-        duration: 10000, // Duration in milliseconds (5 seconds)
-      });
-      return;
+      const result = await db
+        .select({
+          id: Expenses.id,
+          name: Expenses.name,
+          amount: Expenses.amount,
+          createdAt: Expenses.createdAt,
+          periodId: Budgets.periodId,
+        })
+        .from(Budgets)
+        .rightJoin(Expenses, eq(Budgets.id, Expenses.budgetId))
+        .where(
+          and(
+            eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress),
+            inArray(Budgets.periodId, selectedTimeFrames)
+          ))
+        .orderBy(desc(Expenses.id));
+
+      setExpensesList(result);
+    } catch (error) {
+      console.error("Error fetching expenses:", error);
     }
-    const result = await db
-      .select({
-        id: Expenses.id,
-        name: Expenses.name,
-        amount: Expenses.amount,
-        createdAt: Expenses.createdAt,
-      })
-      .from(Budgets)
-      .rightJoin(Expenses, eq(Budgets.id, Expenses.budgetId))
-      .where(
-        and(
-          eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress),
-          eq(selectedPeriod.periodId, Budgets.periodId)
-        ))
-      .orderBy(desc(Expenses.id));
-    setExpensesList(result);
   };
 
   // Animation variants for chart transitions

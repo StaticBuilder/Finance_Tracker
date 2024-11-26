@@ -1,19 +1,22 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useUser } from "@clerk/nextjs";
 import { db } from "../../../../../utils/dbConfig";
-import { desc, eq, getTableColumns, sql, and } from "drizzle-orm";
-import { Budgets, Expenses, Incomes, PeriodSelected } from "../../../../../utils/schema"; // Make sure Incomes is imported
+import { desc, eq, getTableColumns, sql, and, inArray } from "drizzle-orm";
+import { Budgets, Expenses, Incomes, PeriodSelected, Periods } from "../../../../../utils/schema";
 import EnhancedUniversalChart from "../_components/graphs/ChartContainer";
 import { useRouter } from "next/navigation";
 import { ChartWrapper } from "../_components/ChartExport";
 import { toast } from "sonner";
+import { TimeFrameContext } from "@/components/ui/TimeFrameProvider";
 
 
 function StatisticsPage() {
   const { user } = useUser();
+  const router = useRouter();
+  const { selectedTimeFrames } = useContext(TimeFrameContext);
+  const [periodNames, setPeriodNames] = useState({});
   const [userEmail, setUserEmail] = useState(null);
-  //const [selectedGraph, setSelectedGraph] = useState("bar");
   const [selectedComparison, setSelectedComparison] = useState("income-spend");
   const [budgetList, setBudgetList] = useState([]);
   const [totalSpend, setTotalSpend] = useState(0);
@@ -23,16 +26,47 @@ function StatisticsPage() {
   const [actualSavings, setActualSavings] = useState(0);
   const [selectedGraph, setSelectedGraph] = useState("bar");
   const [incomeList, setIncomeList] = useState([]);
-  const router = useRouter();
 
-
+  // Fetch period names
   useEffect(() => {
+    const fetchPeriodNames = async () => {
+      if (selectedTimeFrames && selectedTimeFrames.length > 0) {
+        const periodNamesResult = await db
+          .select({
+            id: Periods.id,
+            name: Periods.name
+          })
+          .from(Periods)
+          .where(inArray(Periods.id, selectedTimeFrames));
+
+        const namesMap = periodNamesResult.reduce((acc, period) => {
+          acc[period.id] = period.name;
+          return acc;
+        }, {});
+
+        setPeriodNames(namesMap);
+      }
+    };
+
     if (user) {
+      fetchPeriodNames();
+    }
+  }, [user, selectedTimeFrames]);
+
+  // Initial data fetch
+  useEffect(() => {
+    if (user && selectedTimeFrames && selectedTimeFrames.length > 0) {
       setUserEmail(user.primaryEmailAddress?.emailAddress);
       getBudgetList();
-      getIncomeList(); // Make sure to call this
+      getIncomeList();
+    } else if (user && (!selectedTimeFrames || selectedTimeFrames.length === 0)) {
+      // Route to timeframe setup if no period is selected
+      router.replace("/dashboard/timeframe");
+      toast('Choose A TimeFrame First', {
+        duration: 10000,
+      });
     }
-  }, [user]);
+  }, [user, selectedTimeFrames]);
 
   useEffect(() => {
     if (incomeList.length > 0 && userEmail) {
@@ -44,66 +78,46 @@ function StatisticsPage() {
     }
   }, [incomeList, userEmail]);
 
+  // Income list fetching
   const getIncomeList = async () => {
     try {
       if (!user?.primaryEmailAddress?.emailAddress) return;
-      // Fetch the selected period for the user
-      const selectedPeriod = await db
-      .select()
-      .from(PeriodSelected)
-      .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
-      .then(rows => rows[0] || {});
 
-      if (!selectedPeriod.periodId || selectedPeriod == 0) {
-        // Route to timeframe setup if no period is selected
-        router.replace("/dashboard/timeframe");
-        toast('Choose A TimeFrame First', {
-          duration: 10000, // Duration in milliseconds (5 seconds)
-        });
-        return;
-      }
       const result = await db
         .select({
           ...getTableColumns(Incomes),
-          totalAmount: sql`SUM(CAST(${Incomes.amount} AS NUMERIC))`.mapWith(
-            Number
-          ),
+          periodId: Incomes.periodId,
+          totalAmount: sql`SUM(CAST(${Incomes.amount} AS NUMERIC))`.mapWith(Number),
         })
         .from(Incomes)
-        // .where(eq(Incomes.createdBy, user.primaryEmailAddress.emailAddress))
         .where(
-          eq(selectedPeriod.periodId, Incomes.periodId)
+          and(
+            eq(Incomes.createdBy, user.primaryEmailAddress.emailAddress),
+            inArray(Incomes.periodId, selectedTimeFrames)
+          )
         )
-        .groupBy(Incomes.id);
+        .groupBy(Incomes.id, Incomes.periodId);
 
-      console.log('Fetched income list:', result); // Debug log
       setIncomeList(result);
+
+      // Calculate total income
+      const userIncome = result
+        .reduce((sum, income) => sum + (parseFloat(income.amount) || 0), 0);
+      setTotalIncome(userIncome);
     } catch (error) {
       console.error("Error fetching income list:", error);
     }
   };
 
+  // Budget list fetching
   const getBudgetList = async () => {
     try {
       if (!user?.primaryEmailAddress?.emailAddress) return;
-        // Fetch the selected period for the user
-      const selectedPeriod = await db
-      .select()
-      .from(PeriodSelected)
-      .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
-      .then(rows => rows[0] || {});
 
-      if (!selectedPeriod.periodId || selectedPeriod == 0) {
-        // Route to timeframe setup if no period is selected
-        router.replace("/dashboard/timeframe");
-        toast('Choose A TimeFrame First', {
-          duration: 10000, // Duration in milliseconds (5 seconds)
-        });
-        return;
-      }
       const result = await db
         .select({
           ...getTableColumns(Budgets),
+          periodId: Budgets.periodId,
           totalSpend: sql`COALESCE(sum(${Expenses.amount}), 0)`.mapWith(Number),
           totalItem: sql`count(${Expenses.id})`.mapWith(Number),
         })
@@ -112,12 +126,11 @@ function StatisticsPage() {
         .where(
           and(
             eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress),
-            eq(selectedPeriod.periodId, Budgets.periodId)
+            inArray(Budgets.periodId, selectedTimeFrames)
           ))
-        .groupBy(Budgets.id)
+        .groupBy(Budgets.id, Budgets.periodId)
         .orderBy(desc(Budgets.id));
 
-      console.log('Fetched budget list:', result); // Debug log
       setBudgetList(result);
     } catch (error) {
       console.error("Error fetching budget list:", error);
@@ -141,13 +154,6 @@ function StatisticsPage() {
 
     const expectedSavings_ = income - totalBudget_;
     const actualSavings_ = income - totalSpend_;
-
-    console.log('Calculated totals:', { // Debug log
-      totalBudget: totalBudget_,
-      totalSpend: totalSpend_,
-      expectedSavings: expectedSavings_,
-      actualSavings: actualSavings_
-    });
 
     setTotalBudget(totalBudget_);
     setTotalSpend(totalSpend_);
@@ -308,37 +314,4 @@ function StatisticsPage() {
 export default StatisticsPage;
 
 
-                
-// return (
-//   <div className="p-8">
-//     <h1 className="text-3xl font-bold mb-4">User Statistics</h1>
-//     <div className="mb-6">
-//       <label htmlFor="graphType" className="block text-gray-700 font-medium mb-2">
-//         Select Graph Type:
-//       </label>
-//       <select
-//         id="graphType"
-//         value={selectedGraph}
-//         onChange={(e) => setSelectedGraph(e.target.value)}
-//         className="border p-2 rounded"
-//       >
-//         <option value="bar">Bar Chart</option>
-//         <option value="line">Line Chart</option>
-//         <option value="pie">Pie Chart</option>
-//       </select>
-//     </div>
-//     <div className="grid gap-4">
-//       {selectedGraph === "bar" && (
-//         <>
-//           <div className="mb-4">
-//             <p>Total Income: ${totalIncome.toFixed(2)}</p>
-//             <p>Total Spend: ${totalSpend.toFixed(2)}</p>
-//           </div>
-//           <BarChartSpendVsIncome totalIncome={totalIncome} totalSpend={totalSpend} />
-//         </>
-//       )}
-//       {selectedGraph === "line" && <LineChartComponent totalIncome={totalIncome} totalSpend={totalSpend} />}
-//       {selectedGraph === "pie" && <PieChartComponent totalIncome={totalIncome} totalSpend={totalSpend} />}
-//     </div>
-//   </div>
-// );
+              

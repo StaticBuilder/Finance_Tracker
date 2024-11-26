@@ -1,18 +1,17 @@
 "use client";
-import React, { useEffect, useState, useContext } from "react";
-import CreateIncomes from "./CreateIncomes";
-import { db } from "../../../../../../utils/dbConfig";
-import { desc, eq, getTableColumns, sql, and, inArray } from "drizzle-orm";
-import { Incomes, Expenses, Periods } from "../../../../../../utils/schema";
-import { useUser } from "@clerk/nextjs";
-import IncomeItem from "./IncomeItem";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useState, useContext } from 'react'
+import { db } from '../../../../../../utils/dbConfig';
+import { desc, eq, getTableColumns, sql, and, inArray } from 'drizzle-orm'
+import { Budgets, Expenses, Periods } from '../../../../../../utils/schema';
+import { useUser } from '@clerk/nextjs'
+import BudgetItem from './ExpenseItem';
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { TimeFrameContext } from "@/components/ui/TimeFrameProvider";
 
-function IncomeList() {
-  const [incomelist, setIncomelist] = useState([]);
+function BudgetList() {
   const [periodNames, setPeriodNames] = useState({});
+  const [budgetList, setBudgetList] = useState([]);
   const { user } = useUser();
   const router = useRouter();
   const { selectedTimeFrames } = useContext(TimeFrameContext);
@@ -46,7 +45,7 @@ function IncomeList() {
 
   useEffect(() => {
     if (user && selectedTimeFrames && selectedTimeFrames.length > 0) {
-      getIncomelist();
+      getBudgetList();
     } else if (user && (!selectedTimeFrames || selectedTimeFrames.length === 0)) {
       // Route to timeframe setup if no period is selected
       router.replace("/dashboard/timeframe");
@@ -56,7 +55,7 @@ function IncomeList() {
     }
   }, [user, selectedTimeFrames]);
 
-  const getIncomelist = async () => {
+  const getBudgetList = async () => {
     // Ensure we have selected time frames
     if (!selectedTimeFrames || selectedTimeFrames.length === 0) {
       toast('No Time Frames Selected', {
@@ -65,66 +64,57 @@ function IncomeList() {
       return;
     }
 
-    const result = await db
-      .select({
-        ...getTableColumns(Incomes),
-        totalSpend: sql`sum(${Expenses.amount})`.mapWith(Number),
-        totalItem: sql`count(${Expenses.id})`.mapWith(Number),
-        periodId: Incomes.periodId, // Include periodId in the result
-      })
-      .from(Incomes)
-      .leftJoin(Expenses, eq(Incomes.id, Expenses.budgetId))
-      .where(
-        and(
-          eq(Incomes.createdBy, user?.primaryEmailAddress?.emailAddress),
-          inArray(Incomes.periodId, selectedTimeFrames)
-        ))
-      .groupBy(Incomes.id)
-      .orderBy(desc(Incomes.id));
+    const result = await db.select({
+      ...getTableColumns(Budgets),
+      totalSpend: sql`sum(${Expenses.amount})`.mapWith(Number),
+      totalItem: sql`count(${Expenses.id})`.mapWith(Number),
+      periodId: Budgets.periodId // Explicitly include periodId
+    }).from(Budgets)
+    .leftJoin(Expenses, eq(Budgets.id, Expenses.budgetId))
+    .where(
+      and(
+        eq(Budgets.createdBy, user?.primaryEmailAddress?.emailAddress),
+        inArray(Budgets.periodId, selectedTimeFrames)
+      ))
+    .groupBy(Budgets.id)
+    .orderBy(desc(Budgets.id));
 
-    setIncomelist(result);
-  };
+    setBudgetList(result);
+  }
 
-  // Function to group incomes by period
-  const groupIncomesByPeriod = () => {
+  // Function to group budgets by period
+  const groupBudgetsByPeriod = () => {
     return selectedTimeFrames.map(periodId => ({
       periodId,
       periodName: periodNames[periodId] || `Period ${periodId}`,
-      incomes: incomelist.filter(income => income.periodId === periodId)
+      budgets: budgetList.filter(budget => budget.periodId === periodId)
     }));
   };
 
   return (
     <div className="mt-7">
-      <div className="mb-6">
-      <CreateIncomes refreshData={() => getIncomelist()} />
-      </div>
-
       {selectedTimeFrames.length === 0 ? (
         <div className="text-center text-gray-500 mt-10">
-          Please select a time frame to view incomes
+          Please select a time frame to view budgets
         </div>
       ) : (
-        groupIncomesByPeriod().map(periodGroup => (
+        groupBudgetsByPeriod().map(periodGroup => (
           <div key={periodGroup.periodId} className="mb-8">
-            <h2 className="text-xl font-semibold mb-4">
-              {periodGroup.periodName}
-            </h2>
-            <div className="mb-8">
-              {periodGroup.incomes.length > 0 ? (
-                periodGroup.incomes.map((budget, index) => (
-                  <IncomeItem 
-                    incomeId={budget.id}
+            <div>
+              {periodGroup.budgets.length > 0 ? (
+                periodGroup.budgets.map((budget, index) => (
+                  <BudgetItem 
                     budget={budget} 
                     key={index} 
-                    refreshData={getIncomelist} 
+                    refreshData={getBudgetList} 
+                    className="mb-3"
                   />
                 ))
               ) : (
                 [1, 2, 3].map((item, index) => (
                   <div
                     key={index}
-                    className="w-full bg-green-250 rounded-lg h-[150px] animate-pulse"
+                    className="w-full bg-orange-250 rounded-lg h-[150px] animate-pulse"
                   ></div>
                 ))
               )}
@@ -133,7 +123,8 @@ function IncomeList() {
         ))
       )}
     </div>
-  );
+
+  )
 }
 
-export default IncomeList;
+export default BudgetList

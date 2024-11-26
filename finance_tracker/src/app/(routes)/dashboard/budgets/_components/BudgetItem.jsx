@@ -29,7 +29,7 @@ function BudgetItem({ budget }) {
     <Link href={"/dashboard/expenses/" + budget?.id}>
       <div
         className="p-5 border rounded-2xl
-        hover:shadow-md cursor-pointer h-[170px]"
+        hover:shadow-md cursor-pointer h-[170px] mb-3"
       >
         <div className="flex gap-2 items-center justify-between">
           <div className="flex gap-2 items-center">

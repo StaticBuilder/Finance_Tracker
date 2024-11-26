@@ -5,10 +5,16 @@ import { eq } from 'drizzle-orm';
 import { PeriodSelected } from '../../../utils/schema';
 import { useUser } from '@clerk/nextjs';
 
-export const TimeFrameContext = createContext();
+export const TimeFrameContext = createContext({
+  selectedTimeFrames: [],
+  setSelectedTimeFrames: () => {
+    console.warn('setSelectedTimeFrames called without provider');
+  },
+  isLoading: true
+});
 
 export const TimeFrameProvider = ({ children }) => {
-  const [selectedTimeFrame, setSelectedTimeFrame] = useState(null);
+  const [selectedTimeFrames, setSelectedTimeFrames] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useUser();
 
@@ -21,19 +27,19 @@ export const TimeFrameProvider = ({ children }) => {
           periodId: PeriodSelected.periodId,
         })
         .from(PeriodSelected)
-        .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress,));
+        .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress));
 
       if (result && result.length > 0) {
-        const periodId = Number(result[0].periodId);
-        setSelectedTimeFrame(periodId);
-        console.log('Fetched periodId from DB:', periodId);
+        const periodIds = result.map(r => Number(r.periodId));
+        setSelectedTimeFrames(periodIds);
+        console.log('Fetched periodIds from DB:', periodIds);
       } else {
-        setSelectedTimeFrame(null);
-        console.log('No period selected in DB');
+        setSelectedTimeFrames([]);
+        console.log('No periods selected in DB');
       }
     } catch (error) {
       console.error('Error fetching selected period:', error);
-      setSelectedTimeFrame(null);
+      setSelectedTimeFrames([]);
     } finally {
       setIsLoading(false);
     }
@@ -44,47 +50,37 @@ export const TimeFrameProvider = ({ children }) => {
     if (user?.primaryEmailAddress?.emailAddress) {
       fetchSelectedPeriod();
     }
-  }, [user?.primaryEmailAddress?.emailAddress]); // Add user as dependency
+  }, [user?.primaryEmailAddress?.emailAddress]);
 
-  const updateSelectedTimeFrame = async (newTimeFrameId) => {
+  const updateSelectedTimeFrames = async (timeFrameId) => {
     if (!user?.primaryEmailAddress?.emailAddress) return;
 
     try {
-      if (newTimeFrameId === null) {
+      const isSelected = selectedTimeFrames.includes(timeFrameId);
+      
+      if (isSelected) {
+        // Remove the selection
         await db
           .delete(PeriodSelected)
-          .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress,));
+          .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
+          .where(eq(PeriodSelected.periodId, timeFrameId));
         
-        setSelectedTimeFrame(null);
-        console.log('Cleared selected period');
+        setSelectedTimeFrames(prev => prev.filter(id => id !== timeFrameId));
+        console.log('Removed period selection:', timeFrameId);
       } else {
-        const existing = await db
-          .select()
-          .from(PeriodSelected)
-          .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress));
+        // Add new selection
+        await db.insert(PeriodSelected).values({
+          createdBy: user?.primaryEmailAddress?.emailAddress,
+          periodId: timeFrameId,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
 
-        if (existing.length > 0) {
-          await db
-            .update(PeriodSelected)
-            .set({
-              periodId: newTimeFrameId,
-              updatedAt: new Date().toISOString()
-            })
-            .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress));
-        } else {
-          await db.insert(PeriodSelected).values({
-            createdBy: user?.primaryEmailAddress?.emailAddress,
-            periodId: newTimeFrameId,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          });
-        }
-
-        setSelectedTimeFrame(newTimeFrameId);
-        console.log('Updated selected period to:', newTimeFrameId);
+        setSelectedTimeFrames(prev => [...prev, timeFrameId]);
+        console.log('Added new period selection:', timeFrameId);
       }
     } catch (error) {
-      console.error('Error updating selected period:', error);
+      console.error('Error updating selected periods:', error);
       throw error;
     }
   };
@@ -92,8 +88,8 @@ export const TimeFrameProvider = ({ children }) => {
   return (
     <TimeFrameContext.Provider 
       value={{ 
-        selectedTimeFrame,
-        setSelectedTimeFrame: updateSelectedTimeFrame,
+        selectedTimeFrames,
+        setSelectedTimeFrames: updateSelectedTimeFrames, // Changed this line
         isLoading
       }}
     >

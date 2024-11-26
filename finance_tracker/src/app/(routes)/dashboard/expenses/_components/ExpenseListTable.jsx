@@ -95,7 +95,8 @@ function ExpenseListTable({ budget, expensesList, refreshData }) {
   return (
     <div className="mt-3">
       <div className="flex justify-between items-center">
-        <h2 className="font-bold text-lg md:text-lg text-sm">Latest Expenses</h2>
+        <h2 className="font-bold text-lg md:text-lg text-sm">{budgetName} Expenses
+        </h2>
         <button
           onClick={exportToPDF}
           className="flex items-center gap-2 bg-red-500 hover:bg-red-600 active:bg-blue-500 text-white px-4 py-2 rounded-lg transition-colors duration-200 md:text-base text-sm"

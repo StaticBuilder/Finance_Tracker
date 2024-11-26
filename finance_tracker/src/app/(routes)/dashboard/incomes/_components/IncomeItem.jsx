@@ -9,7 +9,7 @@ function IncomeItem({ incomeId, budget, refreshData }) {
   };
 
   return (
-    <div className="p-5 border rounded-2xl hover:shadow-md cursor-pointer h-[170px]">
+    <div className="p-5 border rounded-2xl hover:shadow-md cursor-pointer h-[170px] mb-3">
       <div className="flex gap-2 items-center justify-between">
         <div className="flex gap-2 items-center">
           <h2 className="md:text-2xl text-xl p-3 px-3 bg-green-600 rounded-full"> {/* Reduced icon size */}

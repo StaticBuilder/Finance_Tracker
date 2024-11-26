@@ -1,3 +1,85 @@
+"use client"
+import React, { useEffect, useState } from "react";
+import { db } from "../../../../../utils/dbConfig";
+import { desc, eq, getTableColumns } from "drizzle-orm";
+import { Periods } from "../../../../../utils/schema";
+import { useUser } from "@clerk/nextjs";
+import CreateTimeFrame from "./_components/CreateTimeFrame";
+import { toast } from "sonner";
+import TimeFramesCreated from "./_components/TimeFrameCreated";
+
+
+function TimeFrame() {
+  const [periodList, setPeriodlist] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { user } = useUser();
+
+  const getPeriodList = async () => {
+    try {
+      setLoading(true);
+      const result = await db
+        .select({
+          ...getTableColumns(Periods),
+        })
+        .from(Periods)
+        .where(eq(Periods.createdBy,user?.primaryEmailAddress?.emailAddress))
+        .orderBy(desc(Periods.createdAt));
+
+      // Sort periods by createdAt in descending order (newest first)
+      const sortedPeriods = result.sort((a, b) => {
+        const dateA = new Date(a.createdAt);
+        const dateB = new Date(b.createdAt);
+        return dateB - dateA;
+      });
+
+      setPeriodlist(sortedPeriods);
+    } catch (error) {
+      console.error("Error fetching periods:", error);
+      toast.error("Failed to load time frames");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.primaryEmailAddress?.emailAddress) {
+      getPeriodList();
+    }
+  }, [user?.primaryEmailAddress?.emailAddress,]);
+
+  if (loading) {
+    return (
+      <div className="p-4 space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3].map((item, index) => (
+            <div
+              key={index}
+              className="w-full bg-orange-250 rounded-lg h-[150px] animate-pulse"
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-4 space-y-6">
+      {/* Create New TimeFrame Button */}
+      <div className="mb-6">
+        <CreateTimeFrame refreshData={getPeriodList} />
+      </div>
+
+      {/* Time Frames Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <TimeFramesCreated periods={periodList} refreshData={getPeriodList} />
+      </div>
+    </div>
+  );
+}
+
+export default TimeFrame;
+
+
 "use client";
 
 import React, { useState, useContext, useEffect } from 'react';
@@ -203,3 +285,105 @@ const TimeFramesCreated = ({ periods, refreshData }) => {
 };
 
 export default TimeFramesCreated;
+
+"use client";
+import React, { createContext, useState, useEffect } from 'react';
+import { db } from '../../../utils/dbConfig';
+import { eq } from 'drizzle-orm';
+import { PeriodSelected } from '../../../utils/schema';
+import { useUser } from '@clerk/nextjs';
+
+export const TimeFrameContext = createContext({
+  selectedTimeFrames: [],
+  setSelectedTimeFrames: () => {
+    console.warn('setSelectedTimeFrames called without provider');
+  },
+  isLoading: true
+});
+
+export const TimeFrameProvider = ({ children }) => {
+  const [selectedTimeFrames, setSelectedTimeFrames] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useUser();
+
+  const fetchSelectedPeriod = async () => {
+    if (!user?.primaryEmailAddress?.emailAddress) return;
+    
+    try {
+      const result = await db
+        .select({
+          periodId: PeriodSelected.periodId,
+        })
+        .from(PeriodSelected)
+        .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress));
+
+      if (result && result.length > 0) {
+        const periodIds = result.map(r => Number(r.periodId));
+        setSelectedTimeFrames(periodIds);
+        console.log('Fetched periodIds from DB:', periodIds);
+      } else {
+        setSelectedTimeFrames([]);
+        console.log('No periods selected in DB');
+      }
+    } catch (error) {
+      console.error('Error fetching selected period:', error);
+      setSelectedTimeFrames([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Initial fetch on mount - now depends on user
+  useEffect(() => {
+    if (user?.primaryEmailAddress?.emailAddress) {
+      fetchSelectedPeriod();
+    }
+  }, [user?.primaryEmailAddress?.emailAddress]);
+
+  const updateSelectedTimeFrames = async (timeFrameId) => {
+    if (!user?.primaryEmailAddress?.emailAddress) return;
+
+    try {
+      const isSelected = selectedTimeFrames.includes(timeFrameId);
+      
+      if (isSelected) {
+        // Remove the selection
+        await db
+          .delete(PeriodSelected)
+          .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
+          .where(eq(PeriodSelected.periodId, timeFrameId));
+        
+        setSelectedTimeFrames(prev => prev.filter(id => id !== timeFrameId));
+        console.log('Removed period selection:', timeFrameId);
+      } else {
+        // Add new selection
+        await db.insert(PeriodSelected).values({
+          createdBy: user?.primaryEmailAddress?.emailAddress,
+          periodId: timeFrameId,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+
+        setSelectedTimeFrames(prev => [...prev, timeFrameId]);
+        console.log('Added new period selection:', timeFrameId);
+      }
+    } catch (error) {
+      console.error('Error updating selected periods:', error);
+      throw error;
+    }
+  };
+
+  return (
+    <TimeFrameContext.Provider 
+      value={{ 
+        selectedTimeFrames,
+        setSelectedTimeFrames: updateSelectedTimeFrames, // Changed this line
+        isLoading
+      }}
+    >
+      {children}
+    </TimeFrameContext.Provider>
+  );
+};
+
+export default TimeFrameProvider;

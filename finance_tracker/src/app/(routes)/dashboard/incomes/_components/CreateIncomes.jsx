@@ -9,24 +9,14 @@ import { Dialog,
   DialogTitle,
   DialogTrigger,
  } from "@/components/ui/dialog";
-import { AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
- } from "@/components/ui/alert-dialog";
 import EmojiPicker from "emoji-picker-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { db } from "../../../../../../utils/dbConfig";
-import { eq } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 import { Incomes, PeriodSelected } from "../../../../../../utils/schema";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { TimeFrameContext } from "@/components/ui/TimeFrameProvider"; 
 import { useRouter } from "next/navigation";
 
 function CreateIncomes({ refreshData }) {
@@ -43,20 +33,34 @@ function CreateIncomes({ refreshData }) {
    * Used to Create New Budget
    */
   const onCreateIncomes = async () => {
+    // Check how many periods are currently selected
+    const periodCount = await db
+      .select({ count: count() })
+      .from(PeriodSelected)
+      .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
+      .then(result => result[0]?.count || 0);
+
+    // If more than one period is selected
+    if (periodCount > 1) {
+      toast('Please select only one time frame');
+      router.replace("/dashboard/timeframe");
+      return;
+    }
 
     // Fetch the selected period for the user
     const selectedPeriod = await db
-    .select()
-    .from(PeriodSelected)
-    .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
-    .then(rows => rows[0] || {});
+      .select()
+      .from(PeriodSelected)
+      .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
+      .then(rows => rows[0] || {});
 
-    if (!selectedPeriod.periodId || selectedPeriod == 0) {
+    if (!selectedPeriod.periodId || selectedPeriod.periodId === 0) {
       // Route to timeframe setup if no period is selected
       toast('Choose A TimeFrame First');
       router.replace("/dashboard/timeframe");
       return;
     }
+
     const result = await db
       .insert(Incomes)
       .values({
@@ -74,6 +78,7 @@ function CreateIncomes({ refreshData }) {
       toast("New Income Source Created!");
     }
   };
+
   return (
     <div>
       <Dialog>
@@ -116,7 +121,7 @@ function CreateIncomes({ refreshData }) {
                   />
                 </div>
                 <div className="mt-2">
-                  <h2 className="text-black font-medium my-1">Montly Amount</h2>
+                  <h2 className="text-black font-medium my-1">Monthly Amount</h2>
                   <Input
                     type="number"
                     placeholder="e.g. Ksh.500000"
