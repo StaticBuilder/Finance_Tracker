@@ -125,90 +125,87 @@ function EditTimeFrame({ periodInfo, refreshData}){
   };
 
   return(
-    <div>
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button className="flex space-x-2 gap-2 rounded-full">
-            {" "}
-            <PenBox className="w-4" /> Edit
-          </Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit TimeFrame</DialogTitle>
-            <DialogDescription>
-              <div className="mt-5 space-y-4">
-                <div>
-                  <h2 className="text-black font-medium my-1">Period Name</h2>
-                  <Input
-                    placeholder="e.g. Q1 2024"
-                    defaultValue={periodInfo?.name}
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </div>
-                
-                <div>
-                  <h2 className="text-black font-medium my-1">Period Type</h2>
-                  <Select defaultValue={periodInfo?.type} onValueChange={handleTypeChange}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select period type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="bi-weekly">2 Weeks</SelectItem>
-                      <SelectItem value="tri-weekly">3 weeks</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="2-months">2 Months</SelectItem>
-                      <SelectItem value="3-months">3 Months</SelectItem>
-                      <SelectItem value="4-months">4 Months</SelectItem>
-                      <SelectItem value="5-months">5 Months</SelectItem>
-                      <SelectItem value="6-months">6 Months</SelectItem>
-                      <SelectItem value="7-months">7 Months</SelectItem>
-                      <SelectItem value="8-months">8 Months</SelectItem>
-                      <SelectItem value="9-months">9 Months</SelectItem>
-                      <SelectItem value="10-months">10 Months</SelectItem>
-                      <SelectItem value="11-months">11 Months</SelectItem>
-                      <SelectItem value="yearly">Yearly</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <h2 className="text-black font-medium my-1">Start Date</h2>
-                  <Input
-                    type="date"
-                    defaultValue={periodInfo?.startDate}
-                    onChange={(e) => handleStartDateChange(e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <h2 className="text-black font-medium my-1">End Date</h2>
-                  <Input
-                    type="date"
-                    value={endDate}
-                    readOnly
-                  />
-                </div>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button className="w-full sm:w-auto flex items-center justify-center space-x-2 gap-2 rounded-full">
+          <PenBox className="w-4" />
+          <span>Edit</span>
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Edit TimeFrame</DialogTitle>
+          <DialogDescription>
+            <div className="mt-5 space-y-4">
+              <div>
+                <h2 className="text-black font-medium my-1">Period Name</h2>
+                <Input
+                  placeholder="e.g. Q1 2024"
+                  defaultValue={periodInfo?.name}
+                  onChange={(e) => setName(e.target.value)}
+                />
               </div>
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="sm:justify-start">
-            <DialogClose asChild>
-              <Button
-                disabled={!(name && type && startDate && endDate)}
-                onClick={() => onUpdateTimeframe()}
-                className="mt-5 w-full rounded-full"
-              >
-                Edit Time Period
-              </Button>
-            </DialogClose>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+              
+              <div>
+                <h2 className="text-black font-medium my-1">Period Type</h2>
+                <Select defaultValue={periodInfo?.type} onValueChange={handleTypeChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select period type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="bi-weekly">2 Weeks</SelectItem>
+                    <SelectItem value="tri-weekly">3 weeks</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="2-months">2 Months</SelectItem>
+                    <SelectItem value="3-months">3 Months</SelectItem>
+                    <SelectItem value="4-months">4 Months</SelectItem>
+                    <SelectItem value="5-months">5 Months</SelectItem>
+                    <SelectItem value="6-months">6 Months</SelectItem>
+                    <SelectItem value="7-months">7 Months</SelectItem>
+                    <SelectItem value="8-months">8 Months</SelectItem>
+                    <SelectItem value="9-months">9 Months</SelectItem>
+                    <SelectItem value="10-months">10 Months</SelectItem>
+                    <SelectItem value="11-months">11 Months</SelectItem>
+                    <SelectItem value="yearly">Yearly</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
+              <div>
+                <h2 className="text-black font-medium my-1">Start Date</h2>
+                <Input
+                  type="date"
+                  defaultValue={periodInfo?.startDate}
+                  onChange={(e) => handleStartDateChange(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <h2 className="text-black font-medium my-1">End Date</h2>
+                <Input
+                  type="date"
+                  value={endDate}
+                  readOnly
+                />
+              </div>
+            </div>
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter className="sm:justify-start">
+          <DialogClose asChild>
+            <Button
+              disabled={!(name && type && startDate && endDate)}
+              onClick={() => onUpdateTimeframe()}
+              className="mt-5 w-full rounded-full"
+            >
+              Edit Time Period
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
 }
 
 export default EditTimeFrame;

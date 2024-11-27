@@ -265,7 +265,9 @@ export const EnhancedUniversalChart = ({
   
   return (
     <div className={`border rounded-2xl p-5 ${containerHeight}`}>
-      <h2 className="font-bold text-lg mb-4">{title}</h2>
+      <h2 className="font-bold text-2xl mb-4 text-blue-600 text-center">
+        {title}
+      </h2>
       <ResponsiveContainer 
         width="100%" 
         height={chartHeight}

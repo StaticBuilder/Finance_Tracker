@@ -27,7 +27,7 @@ function BarChartComponent({ data }) {
 
   return (
     <div className="border rounded-2xl p-5">
-      <h2 className="font-bold text-lg">Bar Chart: Spend To Budget</h2>
+      <h2 className="font-bold text-1xl mb-4 text-blue-600 text-center">Bar Chart: Spend To Budget</h2>
       <ResponsiveContainer width={"80%"} height={300}>
         <BarChart
           data={data}

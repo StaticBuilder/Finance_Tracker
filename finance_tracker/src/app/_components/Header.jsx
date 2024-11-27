@@ -18,26 +18,12 @@ function Header() {
   }, [isSignedIn, router]);
 
   return (
-    <div className="p-5 flex justify-between items-center border shadow-sm">
-      <div className="flex flex-row items-center">
-        <Image src={"./moneya.svg"} alt="logo" width={40} height={25} />
-        <span className="font-bold text-xl" style={{ color: '#4CAF50' }}>Finance Tracker</span>
-      </div>
-      {isSignedIn ? (
-        <UserButton />
-      ) : (
-        <div className="flex gap-3 items-center">
-          {/* <Link href={"/dashboard"}>
-            <Button variant="outline" className="rounded-full">
-              Dashboard
-            </Button>
-          </Link> */}
-          <Link href={"/sign-in"}>
-            <Button className="rounded-full">Get Started</Button>
-          </Link>
-        </div>
-      )}
-    </div>
+    <div className="p-5 flex justify-center items-center border shadow-sm bg-white">
+  <div className="flex flex-row items-center">
+    <Image src={"./moneya.svg"} alt="logo" width={60} height={40} />
+    <span className="font-bold text-2xl ml-3" style={{ color: '#4CAF50' }}>Finance Tracker</span>
+  </div>
+</div>
   );
 }
 

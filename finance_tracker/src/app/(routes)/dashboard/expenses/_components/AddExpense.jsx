@@ -1,33 +1,113 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { db } from "../../../../../../utils/dbConfig"; 
-import { Budgets, Expenses } from "../../../../../../utils/schema";
+import { Budgets, Expenses, Periods } from "../../../../../../utils/schema";
 import { Loader } from "lucide-react";
 import moment from "moment";
 import React, { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { eq } from 'drizzle-orm';
 
 function AddExpense({ budgetId, user, refreshData }) {
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
   const [loading, setLoading] = useState(false);
+  const [periodDates, setPeriodDates] = useState(null);
+  const [validationInfo, setValidationInfo] = useState(null);
+
+  // Fetch period dates when component mounts
+  useEffect(() => {
+    const fetchPeriodDates = async () => {
+      try {
+        // First get the budget to find its periodId
+        const budget = await db
+          .select({ periodId: Budgets.periodId })
+          .from(Budgets)
+          .where(eq(Budgets.id, budgetId))
+          .limit(1);
+
+        if (budget && budget[0]) {
+          // Then get the period details
+          const period = await db
+            .select({
+              startDate: Periods.startDate,
+              endDate: Periods.endDate
+            })
+            .from(Periods)
+            .where(eq(Periods.id, budget[0].periodId))
+            .limit(1);
+
+          if (period && period[0]) {
+            setPeriodDates(period[0]);
+            console.log("Period dates fetched:", period[0]); // Debug log
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching period dates:", error);
+        toast.error("Failed to fetch budget period");
+      }
+    };
+
+    fetchPeriodDates();
+  }, [budgetId]);
 
   // Set default date to today when component mounts
   useEffect(() => {
     const today = new Date();
-    // Format date as YYYY-MM-DD for input type="date"
     const formattedDate = today.toISOString().split('T')[0];
     setDate(formattedDate);
   }, []);
 
-  /**
-   * Used to Add New Expense
-   */
+  // Update validation info whenever date or periodDates change
+  useEffect(() => {
+    if (!date || !periodDates) return;
+
+    try {
+      const expenseDate = moment(date);
+      const startDate = moment(periodDates.startDate, "YYYY-MM-DD");
+      const endDate = moment(periodDates.endDate, "YYYY-MM-DD");
+      const isValid = expenseDate.isBetween(startDate, endDate, 'day', '[]');
+
+      setValidationInfo({
+        expenseDate: expenseDate.format("YYYY-MM-DD"),
+        startDate: startDate.format("YYYY-MM-DD"),
+        endDate: endDate.format("YYYY-MM-DD"),
+        isValid,
+        message: `Date validation: ${isValid ? 'Valid' : 'Invalid'}`
+      });
+
+      console.log("Validation check:", { // Debug log
+        expenseDate: expenseDate.format("YYYY-MM-DD"),
+        startDate: startDate.format("YYYY-MM-DD"),
+        endDate: endDate.format("YYYY-MM-DD"),
+        isValid
+      });
+    } catch (error) {
+      console.error("Date validation error:", error);
+      setValidationInfo({
+        message: "Date validation error",
+        error: error.toString(),
+        isValid: false
+      });
+    }
+  }, [date, periodDates]);
+
+  const handleDateChange = (e) => {
+    const newDate = e.target.value;
+    setDate(newDate);
+  };
+
   const addNewExpense = async () => {
+    if (!validationInfo?.isValid) {
+      toast.error(
+        `Expense date must be between ${periodDates.startDate} and ${periodDates.endDate}`
+      );
+      return;
+    }
+
     setLoading(true);
     try {
-      // Format the date for database storage
       const formattedDate = moment(date).format("DD/MM/YYYY");
       
       const result = await db
@@ -42,11 +122,9 @@ function AddExpense({ budgetId, user, refreshData }) {
 
       if (result) {
         refreshData();
-        toast("New Expense Added!");
-        // Reset form
+        toast.success("New Expense Added!");
         setAmount("");
         setName("");
-        // Reset date to today
         const today = new Date().toISOString().split('T')[0];
         setDate(today);
       }
@@ -56,6 +134,14 @@ function AddExpense({ budgetId, user, refreshData }) {
     } finally {
       setLoading(false);
     }
+  };
+
+  const isFormValid = () => {
+    return name && 
+           amount && 
+           date && 
+           validationInfo?.isValid && 
+           !loading;
   };
 
   return (
@@ -83,12 +169,23 @@ function AddExpense({ budgetId, user, refreshData }) {
         <Input
           type="date"
           value={date}
-          onChange={(e) => setDate(e.target.value)}
+          onChange={handleDateChange}
         />
+        {periodDates && (
+          <p className="text-sm text-gray-500 mt-1">
+            Valid dates: {periodDates.startDate} - {periodDates.endDate}
+          </p>
+        )}
+        {/* Debug information */}
+        {/* {validationInfo && (
+          <div className="text-xs text-gray-500 mt-1 p-2 bg-gray-100 rounded">
+            <pre>{JSON.stringify(validationInfo, null, 2)}</pre>
+          </div>
+        )} */}
       </div>
       <Button
-        disabled={!(name && amount && date) || loading}
-        onClick={() => addNewExpense()}
+        disabled={!isFormValid()}
+        onClick={addNewExpense}
         className="mt-3 w-full rounded-full"
       >
         {loading ? <Loader className="animate-spin" /> : "Add New Expense"}

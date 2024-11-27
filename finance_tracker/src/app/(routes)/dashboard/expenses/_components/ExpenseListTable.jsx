@@ -106,29 +106,32 @@ function ExpenseListTable({ budget, expensesList, refreshData }) {
   return (
     <div className="mt-3">
       <div className="flex justify-between items-center">
-        <h2 className="font-bold text-lg md:text-lg text-sm">{budgetName} Expenses</h2>
+        <h2 className="font-bold text-lg md:text-lg text-sm text-foreground">{budgetName} Expenses</h2>
         <button
           onClick={exportToPDF}
-          className="flex items-center gap-2 bg-red-500 hover:bg-red-600 active:bg-blue-500 text-white px-4 py-2 rounded-lg transition-colors duration-200 md:text-base text-sm"
+          className="flex items-center gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground px-4 py-2 rounded-lg transition-colors duration-200 md:text-base text-sm"
         > 
           <FileDown className="w-4 h-4" />
           Export PDF
         </button>
       </div>
-      <div className="grid grid-cols-4 rounded-tl-xl rounded-tr-xl bg-red-200 p-2 mt-3">
-        <h2 className="font-bold md:text-base text-xs">Name</h2>
-        <h2 className="font-bold md:text-base text-xs">Amount</h2>
-        <h2 className="font-bold md:text-base text-xs text-center">Date</h2>
-        <h2 className="font-bold md:text-base text-xs text-center">Action</h2>
+      <div className="grid grid-cols-4 rounded-tl-xl rounded-tr-xl bg-secondary p-2 mt-3">
+        <h2 className="font-bold md:text-base text-xs text-secondary-foreground">Name</h2>
+        <h2 className="font-bold md:text-base text-xs text-secondary-foreground">Amount</h2>
+        <h2 className="font-bold md:text-base text-xs text-center text-secondary-foreground">Date</h2>
+        <h2 className="font-bold md:text-base text-xs text-center text-secondary-foreground">Action</h2>
       </div>
       {sortedExpenses.map((expenses) => (
-        <div key={expenses.id} className="grid grid-cols-4 bg-slate-50 rounded-bl-xl rounded-br-xl p-2">
+        <div 
+          key={expenses.id} 
+          className="grid grid-cols-4 bg-card text-card-foreground rounded-bl-xl rounded-br-xl p-2 border-b border-border last:border-b-0"
+        >
           <h2 className="md:text-base text-xs">{expenses.name}</h2>
           <h2 className="md:text-base text-xs">Ksh.{expenses.amount}</h2>
           <h2 className="md:text-base text-xs flex justify-center">{expenses.createdAt}</h2>
           <h2
             onClick={() => deleteExpense(expenses)}
-            className="text-red-500 cursor-pointer flex items-center gap-2 justify-center"
+            className="text-destructive cursor-pointer flex items-center gap-2 justify-center hover:bg-muted/30 rounded-md p-1 transition-colors"
           >
             <Trash className="md:w-4 md:h-4 w-6 h-6" />
             <span className="md:inline hidden">Delete</span>
@@ -137,7 +140,7 @@ function ExpenseListTable({ budget, expensesList, refreshData }) {
       ))}
   
       <div className="mt-3 text-right">
-        <h2 className="font-bold text-red-600 md:text-base text-sm">
+        <h2 className="font-bold text-destructive md:text-base text-sm">
           Total Spent: Ksh.{totalSpent.toFixed(2)}
         </h2>
       </div>

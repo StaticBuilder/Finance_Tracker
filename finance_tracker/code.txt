@@ -1,398 +1,149 @@
-based on the knowledge u have on the code below i wnat you to implement a code here 
-<div className="">
-<button className="">Select All</button>
-</div> 
-such that when this button is clicked it will alert the user if he is sure he wants to selext all periods if he confirms all perriods will be slected then the button switches to red and reads unselect then when the user clicks it alerts him if he wants to unselect all if yes all are unselected. But in the meantime when all were selected if the user lets say manually unselects all the Periods one by one the button will track so that when none is selected it will automatically turn green and read select all again 
+below is globalcss and tail wind config.js i want to change the background color of my projest to black and all text to white and any more adjustments i might need
 
-"use client"
-import React, { useEffect, useState } from "react";
-import { db } from "../../../../../utils/dbConfig";
-import { desc, eq, getTableColumns } from "drizzle-orm";
-import { Periods } from "../../../../../utils/schema";
-import { useUser } from "@clerk/nextjs";
-import CreateTimeFrame from "./_components/CreateTimeFrame";
-import { toast } from "sonner";
-import TimeFramesCreated from "./_components/TimeFrameCreated";
+//global.css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-
-function TimeFrame() {
-  const [periodList, setPeriodlist] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const { user } = useUser();
-
-  const getPeriodList = async () => {
-    try {
-      setLoading(true);
-      const result = await db
-        .select({
-          ...getTableColumns(Periods),
-        })
-        .from(Periods)
-        .where(eq(Periods.createdBy,user?.primaryEmailAddress?.emailAddress))
-        .orderBy(desc(Periods.createdAt));
-
-      // Sort periods by createdAt in descending order (newest first)
-      const sortedPeriods = result.sort((a, b) => {
-        const dateA = new Date(a.createdAt);
-        const dateB = new Date(b.createdAt);
-        return dateB - dateA;
-      });
-
-      setPeriodlist(sortedPeriods);
-    } catch (error) {
-      console.error("Error fetching periods:", error);
-      toast.error("Failed to load time frames");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user?.primaryEmailAddress?.emailAddress) {
-      getPeriodList();
-    }
-  }, [user?.primaryEmailAddress?.emailAddress,]);
-
-  if (loading) {
-    return (
-      <div className="p-4 space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((item, index) => (
-            <div
-              key={index}
-              className="w-full bg-orange-250 rounded-lg h-[150px] animate-pulse"
-            />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="p-4 space-y-6">
-      {/* Create New TimeFrame Button */}
-      <div className="mb-6">
-        <CreateTimeFrame refreshData={getPeriodList} />
-      </div>
-      <div className="">
-        <button className="">Select All</button>
-      </div>
-
-      {/* Time Frames Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <TimeFramesCreated periods={periodList} refreshData={getPeriodList} />
-      </div>
-    </div>
-  );
+body {
+  font-family: Arial, Helvetica, sans-serif;
 }
 
-export default TimeFrame;
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 3.9%;
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 96.1%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96.1%;
+    --muted-foreground: 0 0% 45.1%;
+    --accent: 0 0% 96.1%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 89.8%;
+    --input: 0 0% 89.8%;
+    --ring: 0 0% 3.9%;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --radius: 0.5rem;
+  }
+  .dark {
+    --background: 0 0% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 0 0% 9%;
+    --secondary: 0 0% 14.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 14.9%;
+    --muted-foreground: 0 0% 63.9%;
+    --accent: 0 0% 14.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 14.9%;
+    --input: 0 0% 14.9%;
+    --ring: 0 0% 83.1%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+  }
+}
 
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
 
-"use client";
+//tailwind.config
 
-import React, { useState, useContext, useEffect } from 'react';
-import { format } from "date-fns";
-import { Calendar, Type } from "lucide-react";
-import { Card, CardContent } from '@/components/ui/card';
-import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import DeleteTimeFrame from './DeleteTimeFrame';
-import EditTimeFrame from './EditTimeFrame';
-import { TimeFrameContext } from '@/components/ui/TimeFrameProvider';
-
-const TimeFramesCreated = ({ periods, refreshData }) => {
-  const { selectedTimeFrames = [], setSelectedTimeFrames: updateSelectedTimeFrames  } = useContext(TimeFrameContext);
-  const [selectedPeriodId, setSelectedPeriodId] = useState(null);
-  const [showAlert, setShowAlert] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  const formatDateWithDay = (dateString) => {
-    try {
-      const date = new Date(dateString);
-      return format(date, "EEE do MMM yyyy");
-    } catch (error) {
-      console.error("Error formatting date:", error.message, dateString);
-      return "Invalid Date";
-    }
-  };
-
-  const selectedPeriod = periods.find((period) => period.id === selectedPeriodId);
-
-  const handleDialogOpen = (periodId) => {
-    setSelectedPeriodId(periodId);
-  };
-
-  const handleDialogClose = () => {
-    setSelectedPeriodId(null);
-    setShowAlert(false);
-  };
-
-  const formatCreatedAt = (dateString) => {
-    try {
-      if (!dateString) throw new Error('Invalid date string');
-      const date = new Date(dateString);
-  
-      if (isNaN(date.getTime())) {
-        throw new Error('Invalid Date');
-      }
-  
-      return format(date, 'EEE do MMM yyyy HH:mm');
-    } catch (error) {
-      console.error('Error formatting createdAt:', error.message);
-      return 'Invalid Date';
-    }
-  };
-
-  const handleChoose = () => {
-    setShowAlert(true);
-  };
-
-  const handleConfirmChoice = async () => {
-    setIsUpdating(true);
-    try {
-      await updateSelectedTimeFrames(selectedPeriodId);
-      handleDialogClose();
-    } catch (error) {
-      console.error('Error updating timeframe selection:', error);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-  
-  return (
-    <>
-      {periods.map((period) => (
-        <Card 
-          key={period.id} 
-          className={`w-full transition-all duration-300 ${
-            (selectedTimeFrames || []).includes(period.id) 
-              ? 'ring-2 ring-purple-500 ring-opacity-50 shadow-lg animate-pulse'
-              : 'hover:shadow-lg'
-          }`}
-        >
-          <CardContent className="p-6">
-            <div className="flex flex-col space-y-4">
-              {/* Header with name and type */}
-              <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold flex items-center space-x-2">
-                  <span>{period.name}</span>
-                  {(selectedTimeFrames || []).includes(period.id) && (
-                    <span className="text-sm text-purple-600 font-medium">(Selected)</span>
-                  )}
-                </h3>
-                <div className="flex items-center space-x-2">
-                  <Type className="w-4 h-4 text-gray-500" />
-                  <span className="text-sm text-gray-600 capitalize">{period.type}</span>
-                </div>
-              </div>
-
-              {/* Dates section */}
-              <div className="flex items-center space-x-2 text-gray-600">
-                <Calendar className="w-4 h-4" />
-                <div className="flex flex-col space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-sm font-medium">
-                      {formatDateWithDay(period.startDate)}
-                    </span>
-                    <span>-</span>
-                    <span className="text-sm font-medium">
-                      {formatDateWithDay(period.endDate)}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Created info */}
-              <div className="flex justify-between items-center pt-2 text-xs text-gray-500">
-                <span>Created by {period.createdBy}</span>
-                <span>{formatCreatedAt(period.createdAt)}</span>
-              </div>
-
-              {/* Open Dialog Button */}
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button 
-                    onClick={() => handleDialogOpen(period.id)}
-                    variant={(selectedTimeFrames || []).includes(period.id) ? "secondary" : "default"}
-                  >
-                    View Details
-                  </Button>
-                </DialogTrigger>
-                {selectedPeriod && (
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>{selectedPeriod.name}</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                      <p>Start Date: {formatDateWithDay(selectedPeriod.startDate)}</p>
-                      <p>End Date: {formatDateWithDay(selectedPeriod.endDate)}</p>
-                    </div>
-                    <DialogFooter>
-                    <Button 
-                        onClick={handleChoose}
-                        variant={(selectedTimeFrames || []).includes(period.id) ? "secondary" : "default"}
-                      >
-                        {(selectedTimeFrames || []).includes(period.id) ? 'Remove Selection' : 'Add Selection'}
-                      </Button>
-                      <EditTimeFrame periodInfo={period} refreshData={refreshData} />
-                      <DeleteTimeFrame periodId={selectedPeriodId} refreshData={refreshData} />
-                    </DialogFooter>
-                  </DialogContent>
-                )}
-              </Dialog>
-
-              {/* Alert Dialog */}
-              <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      {(selectedTimeFrames || []).includes(selectedPeriodId) 
-                        ? 'Remove Time Frame' 
-                        : 'Add Time Frame'}
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                    {(selectedTimeFrames || []).includes(selectedPeriodId)
-                      ? "Are you sure you want to remove this time frame from your selection?"
-                      : "Are you sure you want to add this time frame to your selection?"}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                  <AlertDialogCancel onClick={() => setShowAlert(false)}>Cancel</AlertDialogCancel>
-                    <AlertDialogAction 
-                      onClick={handleConfirmChoice}
-                      disabled={isUpdating}
-                    >
-                      {isUpdating ? 'Updating...' : 'Continue'}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
-    </>
-  );
-};
-
-export default TimeFramesCreated;
-
-"use client";
-import React, { createContext, useState, useEffect } from 'react';
-import { db } from '../../../utils/dbConfig';
-import { eq } from 'drizzle-orm';
-import { PeriodSelected } from '../../../utils/schema';
-import { useUser } from '@clerk/nextjs';
-
-export const TimeFrameContext = createContext({
-  selectedTimeFrames: [],
-  setSelectedTimeFrames: () => {
-    console.warn('setSelectedTimeFrames called without provider');
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+    darkMode: ["class"],
+    content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+  ],
+  theme: {
+  	extend: {
+			animation: {
+				wiggle: 'wiggle 1s ease-in-out infinite',
+			},
+			keyframes: {
+				wiggle: {
+					'0%, 100%': { transform: 'rotate(-3deg)' },
+					'50%': { transform: 'rotate(3deg)' },
+				},
+			},
+  		colors: {
+  			background: 'hsl(var(--background))',
+  			foreground: 'hsl(var(--foreground))',
+				financeGreen: '#4CAF50',
+  			card: {
+  				DEFAULT: 'hsl(var(--card))',
+  				foreground: 'hsl(var(--card-foreground))'
+  			},
+  			popover: {
+  				DEFAULT: 'hsl(var(--popover))',
+  				foreground: 'hsl(var(--popover-foreground))'
+  			},
+  			primary: {
+  				DEFAULT: '#4CAF50 ',
+  				foreground: 'hsl(var(--primary-foreground))'
+  			},
+  			secondary: {
+  				DEFAULT: 'hsl(var(--secondary))',
+  				foreground: 'hsl(var(--secondary-foreground))'
+  			},
+  			muted: {
+  				DEFAULT: 'hsl(var(--muted))',
+  				foreground: 'hsl(var(--muted-foreground))'
+  			},
+  			accent: {
+  				DEFAULT: 'hsl(var(--accent))',
+  				foreground: 'hsl(var(--accent-foreground))'
+  			},
+  			destructive: {
+  				DEFAULT: 'hsl(var(--destructive))',
+  				foreground: 'hsl(var(--destructive-foreground))'
+  			},
+  			border: 'hsl(var(--border))',
+  			input: 'hsl(var(--input))',
+  			ring: 'hsl(var(--ring))',
+  			chart: {
+  				'1': 'hsl(var(--chart-1))',
+  				'2': 'hsl(var(--chart-2))',
+  				'3': 'hsl(var(--chart-3))',
+  				'4': 'hsl(var(--chart-4))',
+  				'5': 'hsl(var(--chart-5))'
+  			}
+  		},
+  		borderRadius: {
+  			lg: 'var(--radius)',
+  			md: 'calc(var(--radius) - 2px)',
+  			sm: 'calc(var(--radius) - 4px)'
+  		}
+  	}
   },
-  isLoading: true
-});
-
-export const TimeFrameProvider = ({ children }) => {
-  const [selectedTimeFrames, setSelectedTimeFrames] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { user } = useUser();
-
-  const fetchSelectedPeriod = async () => {
-    if (!user?.primaryEmailAddress?.emailAddress) return;
-    
-    try {
-      const result = await db
-        .select({
-          periodId: PeriodSelected.periodId,
-        })
-        .from(PeriodSelected)
-        .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress));
-
-      if (result && result.length > 0) {
-        const periodIds = result.map(r => Number(r.periodId));
-        setSelectedTimeFrames(periodIds);
-        console.log('Fetched periodIds from DB:', periodIds);
-      } else {
-        setSelectedTimeFrames([]);
-        console.log('No periods selected in DB');
-      }
-    } catch (error) {
-      console.error('Error fetching selected period:', error);
-      setSelectedTimeFrames([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Initial fetch on mount - now depends on user
-  useEffect(() => {
-    if (user?.primaryEmailAddress?.emailAddress) {
-      fetchSelectedPeriod();
-    }
-  }, [user?.primaryEmailAddress?.emailAddress]);
-
-  const updateSelectedTimeFrames = async (timeFrameId) => {
-    if (!user?.primaryEmailAddress?.emailAddress) return;
-
-    try {
-      const isSelected = selectedTimeFrames.includes(timeFrameId);
-      
-      if (isSelected) {
-        // Remove the selection
-        await db
-          .delete(PeriodSelected)
-          .where(eq(PeriodSelected.createdBy, user?.primaryEmailAddress?.emailAddress))
-          .where(eq(PeriodSelected.periodId, timeFrameId));
-        
-        setSelectedTimeFrames(prev => prev.filter(id => id !== timeFrameId));
-        console.log('Removed period selection:', timeFrameId);
-      } else {
-        // Add new selection
-        await db.insert(PeriodSelected).values({
-          createdBy: user?.primaryEmailAddress?.emailAddress,
-          periodId: timeFrameId,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
-
-        setSelectedTimeFrames(prev => [...prev, timeFrameId]);
-        console.log('Added new period selection:', timeFrameId);
-      }
-    } catch (error) {
-      console.error('Error updating selected periods:', error);
-      throw error;
-    }
-  };
-
-  return (
-    <TimeFrameContext.Provider 
-      value={{ 
-        selectedTimeFrames,
-        setSelectedTimeFrames: updateSelectedTimeFrames, // Changed this line
-        isLoading
-      }}
-    >
-      {children}
-    </TimeFrameContext.Provider>
-  );
+  plugins: [require("tailwindcss-animate")],
 };
-
-export default TimeFrameProvider;

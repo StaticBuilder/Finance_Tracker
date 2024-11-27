@@ -154,15 +154,18 @@ const TimeFramesCreated = ({ periods, refreshData }) => {
                       <p>Start Date: {formatDateWithDay(selectedPeriod.startDate)}</p>
                       <p>End Date: {formatDateWithDay(selectedPeriod.endDate)}</p>
                     </div>
-                    <DialogFooter>
-                    <Button 
+                    <DialogFooter className="flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
+                      <Button 
                         onClick={handleChoose}
                         variant={(selectedTimeFrames || []).includes(period.id) ? "secondary" : "default"}
+                        className="w-full sm:w-auto"
                       >
                         {(selectedTimeFrames || []).includes(period.id) ? 'Remove Selection' : 'Add Selection'}
                       </Button>
-                      <EditTimeFrame periodInfo={period} refreshData={refreshData} />
-                      <DeleteTimeFrame periodId={selectedPeriodId} refreshData={refreshData} />
+                      <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+                        <EditTimeFrame periodInfo={period} refreshData={refreshData} />
+                        <DeleteTimeFrame periodId={selectedPeriodId} refreshData={refreshData} />
+                      </div>
                     </DialogFooter>
                   </DialogContent>
                 )}
@@ -184,7 +187,7 @@ const TimeFramesCreated = ({ periods, refreshData }) => {
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                  <AlertDialogCancel onClick={() => setShowAlert(false)}>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel onClick={() => setShowAlert(false)}>Cancel</AlertDialogCancel>
                     <AlertDialogAction 
                       onClick={handleConfirmChoice}
                       disabled={isUpdating}

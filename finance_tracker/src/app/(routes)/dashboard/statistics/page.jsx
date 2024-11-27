@@ -203,20 +203,20 @@ function StatisticsPage() {
   };
 
   return (
-    <div className="p-8">
+    <div className="p-8 bg-background text-foreground">
       <h1 className="text-3xl font-bold mb-4">User Statistics</h1>
       
       {/* Chart Controls */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div>
-          <label htmlFor="graphType" className="block text-gray-700 font-medium mb-2">
+          <label htmlFor="graphType" className="block text-foreground font-medium mb-2">
             Select Chart Type:
           </label>
           <select
             id="graphType"
             value={selectedGraph}
             onChange={(e) => setSelectedGraph(e.target.value)}
-            className="w-full border p-2 rounded shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full border border-border bg-card text-card-foreground p-2 rounded shadow-sm focus:ring-2 focus:ring-primary focus:border-primary"
           >
             <option value="bar">Bar Chart</option>
             <option value="line">Line Chart</option>
@@ -225,14 +225,14 @@ function StatisticsPage() {
         </div>
 
         <div>
-          <label htmlFor="comparison" className="block text-gray-700 font-medium mb-2">
+          <label htmlFor="comparison" className="block text-foreground font-medium mb-2">
             Select Comparison:
           </label>
           <select
             id="comparison"
             value={selectedComparison}
             onChange={(e) => setSelectedComparison(e.target.value)}
-            className="w-full border p-2 rounded shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full border border-border bg-card text-card-foreground p-2 rounded shadow-sm focus:ring-2 focus:ring-primary focus:border-primary"
           >
             {comparisonOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -245,40 +245,52 @@ function StatisticsPage() {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="p-4 bg-white rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Total Income</h3>
-          <p className="text-lg font-semibold text-green-600">
-            Ksh.{totalIncome.toLocaleString()}
-          </p>
-        </div>
-        <div className="p-4 bg-white rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Total Spend</h3>
-          <p className="text-lg font-semibold text-red-600">
-            Ksh.{totalSpend.toLocaleString()}
-          </p>
-        </div>
-        <div className="p-4 bg-white rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Total Budget</h3>
-          <p className="text-lg font-semibold text-orange-600">
-            Ksh.{totalBudget.toLocaleString()}
-          </p>
-        </div>
-        <div className="p-4 bg-white rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Expected Savings</h3>
-          <p className="text-lg font-semibold text-blue-600">
-            Ksh.{expectedSavings.toLocaleString()}
-          </p>
-        </div>
-        <div className="p-4 bg-white rounded-lg shadow">
-          <h3 className="text-sm font-medium text-gray-500">Actual Savings</h3>
-          <p className="text-lg font-semibold text-purple-600">
-            Ksh.{actualSavings.toLocaleString()}
-          </p>
-        </div>
+        {[
+          { 
+            label: "Total Income", 
+            value: totalIncome.toLocaleString(), 
+            color: "text-green-500",
+            className: "bg-green-50/20"
+          },
+          { 
+            label: "Total Spend", 
+            value: totalSpend.toLocaleString(), 
+            color: "text-destructive",
+            className: "bg-destructive/10"
+          },
+          { 
+            label: "Total Budget", 
+            value: totalBudget.toLocaleString(), 
+            color: "text-orange-500",
+            className: "bg-orange-50/20"
+          },
+          { 
+            label: "Expected Savings", 
+            value: expectedSavings.toLocaleString(), 
+            color: "text-blue-500",
+            className: "bg-blue-50/20"
+          },
+          { 
+            label: "Actual Savings", 
+            value: actualSavings.toLocaleString(), 
+            color: "text-purple-500",
+            className: "bg-purple-50/20"
+          }
+        ].map((card, index) => (
+          <div 
+            key={card.label} 
+            className={`p-4 rounded-lg shadow-sm border border-border ${card.className}`}
+          >
+            <h3 className="text-sm font-medium text-muted-foreground">{card.label}</h3>
+            <p className={`text-lg font-semibold ${card.color}`}>
+              Ksh.{card.value}
+            </p>
+          </div>
+        ))}
       </div>
 
       {/* Chart Display */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-card rounded-lg shadow-md border border-border p-6">
         {selectedComparison === 'budget-list' ? (
           <ChartWrapper 
             title="Budget vs Spend by Category"

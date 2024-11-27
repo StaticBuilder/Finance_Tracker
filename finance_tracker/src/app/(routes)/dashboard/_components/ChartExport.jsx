@@ -78,7 +78,6 @@ export const useChartExport = () => {
   return { exportChartToPDF };
 };
 
-// Rest of the components remain the same
 export const ChartExportButton = ({ 
   chartRef, 
   chartName, 
@@ -91,12 +90,13 @@ export const ChartExportButton = ({
       onClick={() => exportChartToPDF(chartRef, chartName)}
       className={`
         flex items-center gap-2 
-        bg-blue-500 text-white 
+        bg-primary text-primary-foreground 
         px-3 py-1.5 md:px-4 md:py-2 rounded-lg 
-        hover:bg-blue-600 
+        hover:bg-primary/90 
         transition-all duration-300 
         transform hover:scale-105 active:scale-95
         text-xs md:text-sm
+        focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
         ${className}
       `}
     >
@@ -116,20 +116,19 @@ export const ChartWrapper = ({
   const { exportChartToPDF } = useChartExport();
 
   return (
-    <div className="relative">
+    <div className="relative bg-card text-card-foreground rounded-lg border border-border shadow-sm">
       {exportable && (
         <div className="absolute top-2 right-2 z-10">
           <ChartExportButton 
             chartRef={chartRef} 
             chartName={title}
+            className="shadow-sm"
           />
         </div>
       )}
-      <div ref={chartRef}>
+      <div ref={chartRef} className="p-4">
         {children}
       </div>
     </div>
   );
 };
-
-

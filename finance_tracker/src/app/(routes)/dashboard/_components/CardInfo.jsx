@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import formatNumber from "../../../../../utils";
-import getFinancialAdvice from "../../../../../utils/getFinancialAdvice";
-import { Sparkles, CreditCard, ShoppingCart, List, TrendingUp, ArrowDownCircle, ArrowUpCircle, ShieldCheck } from 'lucide-react';
+import { CreditCard, ShoppingCart, List, TrendingDown, ArrowDownCircle, ShieldCheck, PiggyBank } from 'lucide-react';
 import financialAdviceData from "@/app/financialAdviceData";
 
 function CardInfo({ budgetList, incomeList, currentUserEmail }) {
@@ -164,9 +163,9 @@ function CardInfo({ budgetList, incomeList, currentUserEmail }) {
               { label: "Total Budget", value: formatNumber(totalBudget), icon: CreditCard },
               { label: "Total Spend", value: formatNumber(totalSpend), icon: ShoppingCart },
               { label: "No. of Budgets", value: budgetList?.length, icon: List },
-              { label: "Total Income", value: formatNumber(totalIncome), icon: TrendingUp },
+              { label: "Total Income", value: formatNumber(totalIncome), icon: TrendingDown },
               { label: "Expected Savings", value: formatNumber(expectedSavings), icon: ArrowDownCircle },
-              { label: "Actual Savings", value: formatNumber(actualSavings), icon: ArrowUpCircle },
+              { label: "Actual Savings", value: formatNumber(actualSavings), icon: PiggyBank },
             ].map((card, index) => (
               <div
                 key={index}

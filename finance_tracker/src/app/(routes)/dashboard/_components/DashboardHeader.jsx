@@ -2,9 +2,11 @@ import { UserButton } from '@clerk/nextjs';
 import React, { useState } from 'react';
 import SideNav1 from './SideNav1';
 import { Menu } from 'lucide-react'; // Import the Menu icon
+import { useUser } from '@clerk/nextjs';
 
 function DashboardHeader() {
   const [isSideNavVisible, setIsSideNavVisible] = useState(false);
+  const { user } = useUser();
 
   const toggleSideNav = () => {
     setIsSideNavVisible(!isSideNavVisible);
@@ -20,9 +22,10 @@ function DashboardHeader() {
         >
           <Menu size={24} /> {/* Adjust the size as needed */}
         </div>
-        <div className="flex">
-          <UserButton afterSignOutUrl="/"  showName/>
-        </div>
+        <div className=" p-5 flex gap-2 items-center text-white-600">
+        <UserButton afterSignOutUrl='/' />
+        {user?.fullName}
+      </div>
       </div>
 
       {/* Pass close function to SideNav */}

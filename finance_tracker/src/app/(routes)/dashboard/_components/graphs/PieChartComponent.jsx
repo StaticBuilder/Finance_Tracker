@@ -43,7 +43,7 @@ function PieChartComponent({ data }) {
 
   return (
     <div className="border rounded-2xl p-5 h-[500px]">
-      <h2 className="font-bold text-lg mb-4">Pie Chart: Spend Distribution</h2>
+      <h2 className="font-bold text-1xl mb-4 text-blue-600 text-center">Pie Chart: Spend Distribution</h2>
       <ResponsiveContainer width="100%" height="90%">
         <PieChart>
           <Pie

@@ -2,11 +2,9 @@ import React from "react";
 import { motion } from "framer-motion";
 import {
   LayoutGrid,
-  PiggyBank,
-  ReceiptText,
-  CircleDollarSign,
   PieChart,
-  Clock
+  Clock,
+  ShoppingCart, List, TrendingDown,
 } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 import { usePathname } from "next/navigation";
@@ -20,9 +18,9 @@ function SideNav1({ closeSideNav }) {
   const menuList = [
     { id: 1, name: "Dashboard", icon: LayoutGrid, path: "/dashboard", color: "text-green-800", hoverColor: "hover:bg-green-300" },
     { id: 2, name: "Timeframe", icon: Clock, path: "/dashboard/timeframe", color: "text-purple-500", hoverColor: "hover:bg-purple-100" },
-    { id: 3, name: "Incomes", icon: CircleDollarSign, path: "/dashboard/incomes", color: "text-green-500", hoverColor: "hover:bg-green-100" },
-    { id: 4, name: "Budgets", icon: PiggyBank, path: "/dashboard/budgets", color: "text-orange-500", hoverColor: "hover:bg-orange-100" },
-    { id: 5, name: "Expenses", icon: ReceiptText, path: "/dashboard/expenses2", color: "text-red-500", hoverColor: "hover:bg-red-100" },
+    { id: 3, name: "Incomes", icon: TrendingDown, path: "/dashboard/incomes", color: "text-green-500", hoverColor: "hover:bg-green-100" },
+    { id: 4, name: "Budgets", icon: List, path: "/dashboard/budgets", color: "text-orange-500", hoverColor: "hover:bg-orange-100" },
+    { id: 5, name: "Expenses", icon: ShoppingCart, path: "/dashboard/expenses2", color: "text-red-500", hoverColor: "hover:bg-red-100" },
     { id: 6, name: "User - Statistics", icon: PieChart, path: "/dashboard/statistics", color: "text-blue-500", hoverColor: "hover:bg-blue-100" }
    ];
 
