@@ -20,7 +20,12 @@ function Header() {
   return (
     <div className="p-5 flex justify-center items-center border shadow-sm bg-white">
   <div className="flex flex-row items-center">
-    <Image src={"./moneya.svg"} alt="logo" width={60} height={40} />
+    {/* <Image src={"../favicon.ico"} alt="logo" width={60} height={40} /> */}
+    <img
+      src="../favicon.ico"
+      alt="Home"
+      className="w-14 h-14 "
+    />
     <span className="font-bold text-2xl ml-3" style={{ color: '#4CAF50' }}>Finance Tracker</span>
   </div>
 </div>

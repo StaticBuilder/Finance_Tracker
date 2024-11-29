@@ -28,7 +28,11 @@ function SideNav({ closeSideNav }) {
     <div className="h-screen p-5 border shadow-sm">
       <Link href={"/dashboard"}>
         <div className="flex flex-row items-center" onClick={closeSideNav}>
-          <Image src={"./moneya.svg"} alt="logo" width={40} height={25} />
+        <img
+          src="../../favicon.ico"
+          alt="Home"
+          className="w-12 h-12 "
+        />
           <span className="font-bold text-xl" style={{ color: "#4CAF50" }}>
             Finance Tracker
           </span>
